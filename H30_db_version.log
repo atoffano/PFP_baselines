@@ -1,0 +1,399 @@
+Processing BPO...
+Proteins in DB version 2024_01: 446322
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2024_01/baselines_H30_2024_01_BPO/predictions
+Number of unaligned proteins: 539 out of 2676 (20.14200298953662 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2024_01/baselines_H30_2024_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2024_01: 424438
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2024_01/baselines_H30_2024_01_CCO/predictions
+Number of unaligned proteins: 668 out of 2921 (22.868880520369736 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2024_01/baselines_H30_2024_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2024_01: 481815
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2024_01/baselines_H30_2024_01_MFO/predictions
+Number of unaligned proteins: 485 out of 2502 (19.38449240607514 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2024_01/baselines_H30_2024_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2023_01: 446022
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2023_01/baselines_H30_2023_01_BPO/predictions
+Number of unaligned proteins: 545 out of 2676 (20.366218236173392 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2023_01/baselines_H30_2023_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2023_01: 422070
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2023_01/baselines_H30_2023_01_CCO/predictions
+Number of unaligned proteins: 666 out of 2921 (22.800410818212942 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2023_01/baselines_H30_2023_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2023_01: 480023
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2023_01/baselines_H30_2023_01_MFO/predictions
+Number of unaligned proteins: 492 out of 2502 (19.664268585131893 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2023_01/baselines_H30_2023_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2022_01: 436076
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2022_01/baselines_H30_2022_01_BPO/predictions
+Number of unaligned proteins: 575 out of 2676 (21.48729446935725 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2022_01/baselines_H30_2022_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2022_01: 403054
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2022_01/baselines_H30_2022_01_CCO/predictions
+Number of unaligned proteins: 732 out of 2921 (25.059910989387195 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2022_01/baselines_H30_2022_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2022_01: 477989
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2022_01/baselines_H30_2022_01_MFO/predictions
+Number of unaligned proteins: 506 out of 2502 (20.223820943245403 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2022_01/baselines_H30_2022_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2021_01: 434076
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2021_01/baselines_H30_2021_01_BPO/predictions
+Number of unaligned proteins: 582 out of 2676 (21.748878923766814 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2021_01/baselines_H30_2021_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2021_01: 399882
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2021_01/baselines_H30_2021_01_CCO/predictions
+Number of unaligned proteins: 747 out of 2921 (25.573433755563162 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2021_01/baselines_H30_2021_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2021_01: 474828
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2021_01/baselines_H30_2021_01_MFO/predictions
+Number of unaligned proteins: 524 out of 2502 (20.943245403677057 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2021_01/baselines_H30_2021_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2020_01: 436881
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2020_01/baselines_H30_2020_01_BPO/predictions
+Number of unaligned proteins: 598 out of 2676 (22.34678624813154 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2020_01/baselines_H30_2020_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2020_01: 398316
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2020_01/baselines_H30_2020_01_CCO/predictions
+Number of unaligned proteins: 760 out of 2921 (26.018486819582336 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2020_01/baselines_H30_2020_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2020_01: 470986
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2020_01/baselines_H30_2020_01_MFO/predictions
+Number of unaligned proteins: 545 out of 2502 (21.78257394084732 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2020_01/baselines_H30_2020_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2019_01: 428803
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2019_01/baselines_H30_2019_01_BPO/predictions
+Number of unaligned proteins: 617 out of 2676 (23.05680119581465 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2019_01/baselines_H30_2019_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2019_01: 393114
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2019_01/baselines_H30_2019_01_CCO/predictions
+Number of unaligned proteins: 779 out of 2921 (26.668948990071893 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2019_01/baselines_H30_2019_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2019_01: 465388
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2019_01/baselines_H30_2019_01_MFO/predictions
+Number of unaligned proteins: 575 out of 2502 (22.981614708233415 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2019_01/baselines_H30_2019_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2018_01: 423706
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2018_01/baselines_H30_2018_01_BPO/predictions
+Number of unaligned proteins: 630 out of 2676 (23.54260089686099 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2018_01/baselines_H30_2018_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2018_01: 393373
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2018_01/baselines_H30_2018_01_CCO/predictions
+Number of unaligned proteins: 782 out of 2921 (26.77165354330709 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2018_01/baselines_H30_2018_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2018_01: 458194
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2018_01/baselines_H30_2018_01_MFO/predictions
+Number of unaligned proteins: 596 out of 2502 (23.82094324540368 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2018_01/baselines_H30_2018_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2017_01: 431704
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2017_01/baselines_H30_2017_01_BPO/predictions
+Number of unaligned proteins: 634 out of 2676 (23.692077727952167 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2017_01/baselines_H30_2017_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2017_01: 387440
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2017_01/baselines_H30_2017_01_CCO/predictions
+Number of unaligned proteins: 803 out of 2921 (27.49058541595344 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2017_01/baselines_H30_2017_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2017_01: 447136
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2017_01/baselines_H30_2017_01_MFO/predictions
+Number of unaligned proteins: 637 out of 2502 (25.45963229416467 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2017_01/baselines_H30_2017_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2016_01: 423236
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2016_01/baselines_H30_2016_01_BPO/predictions
+Number of unaligned proteins: 666 out of 2676 (24.887892376681613 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2016_01/baselines_H30_2016_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2016_01: 379807
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2016_01/baselines_H30_2016_01_CCO/predictions
+Number of unaligned proteins: 828 out of 2921 (28.346456692913385 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2016_01/baselines_H30_2016_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2016_01: 441078
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2016_01/baselines_H30_2016_01_MFO/predictions
+Number of unaligned proteins: 677 out of 2502 (27.058353317346125 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2016_01/baselines_H30_2016_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2015_01: 413664
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2015_01/baselines_H30_2015_01_BPO/predictions
+Number of unaligned proteins: 718 out of 2676 (26.831091180866967 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2015_01/baselines_H30_2015_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2015_01: 375167
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2015_01/baselines_H30_2015_01_CCO/predictions
+Number of unaligned proteins: 874 out of 2921 (29.92125984251969 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2015_01/baselines_H30_2015_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2015_01: 436053
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2015_01/baselines_H30_2015_01_MFO/predictions
+Number of unaligned proteins: 719 out of 2502 (28.737010391686653 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2015_01/baselines_H30_2015_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2014_01: 418937
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2014_01/baselines_H30_2014_01_BPO/predictions
+Number of unaligned proteins: 751 out of 2676 (28.064275037369207 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2014_01/baselines_H30_2014_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2014_01: 367418
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2014_01/baselines_H30_2014_01_CCO/predictions
+Number of unaligned proteins: 898 out of 2921 (30.742896268401232 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2014_01/baselines_H30_2014_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2014_01: 429321
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2014_01/baselines_H30_2014_01_MFO/predictions
+Number of unaligned proteins: 771 out of 2502 (30.815347721822544 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2014_01/baselines_H30_2014_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2013_01: 413508
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2013_01/baselines_H30_2013_01_BPO/predictions
+Number of unaligned proteins: 781 out of 2676 (29.185351270553063 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2013_01/baselines_H30_2013_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2013_01: 368059
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2013_01/baselines_H30_2013_01_CCO/predictions
+Number of unaligned proteins: 918 out of 2921 (31.42759328996919 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2013_01/baselines_H30_2013_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2013_01: 424281
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2013_01/baselines_H30_2013_01_MFO/predictions
+Number of unaligned proteins: 814 out of 2502 (32.53397282174261 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2013_01/baselines_H30_2013_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2012_01: 388721
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2012_01/baselines_H30_2012_01_BPO/predictions
+Number of unaligned proteins: 853 out of 2676 (31.875934230194318 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2012_01/baselines_H30_2012_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2012_01: 358337
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2012_01/baselines_H30_2012_01_CCO/predictions
+Number of unaligned proteins: 956 out of 2921 (32.7285176309483 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2012_01/baselines_H30_2012_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2012_01: 428786
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2012_01/baselines_H30_2012_01_MFO/predictions
+Number of unaligned proteins: 726 out of 2502 (29.016786570743403 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2012_01/baselines_H30_2012_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2011_01: 375314
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2011_01/baselines_H30_2011_01_BPO/predictions
+Number of unaligned proteins: 925 out of 2676 (34.56651718983558 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2011_01/baselines_H30_2011_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2011_01: 346678
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2011_01/baselines_H30_2011_01_CCO/predictions
+Number of unaligned proteins: 998 out of 2921 (34.16638137624101 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2011_01/baselines_H30_2011_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2011_01: 421612
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2011_01/baselines_H30_2011_01_MFO/predictions
+Number of unaligned proteins: 733 out of 2502 (29.29656274980016 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2011_01/baselines_H30_2011_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2010_01: 402815
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2010_01/baselines_H30_2010_01_BPO/predictions
+Number of unaligned proteins: 902 out of 2676 (33.70702541106129 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2010_01/baselines_H30_2010_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2010_01: 334870
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2010_01/baselines_H30_2010_01_CCO/predictions
+Number of unaligned proteins: 1038 out of 2921 (35.535775419376925 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2010_01/baselines_H30_2010_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2010_01: 412689
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2010_01/baselines_H30_2010_01_MFO/predictions
+Number of unaligned proteins: 757 out of 2502 (30.25579536370903 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2010_01/baselines_H30_2010_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2009_03: 333074
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2009_03/baselines_H30_2009_03_BPO/predictions
+Number of unaligned proteins: 935 out of 2676 (34.940209267563525 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2009_03/baselines_H30_2009_03_BPO/predictions
+Processing CCO...
+Proteins in DB version 2009_03: 276937
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2009_03/baselines_H30_2009_03_CCO/predictions
+Number of unaligned proteins: 1075 out of 2921 (36.802464909277646 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2009_03/baselines_H30_2009_03_CCO/predictions
+Processing MFO...
+Proteins in DB version 2009_03: 341397
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2009_03/baselines_H30_2009_03_MFO/predictions
+Number of unaligned proteins: 789 out of 2502 (31.534772182254194 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2009_03/baselines_H30_2009_03_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2008_01: 142575
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2008_01/baselines_H30_2008_01_BPO/predictions
+Number of unaligned proteins: 1633 out of 2676 (61.02391629297459 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2008_01/baselines_H30_2008_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2008_01: 56418
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2008_01/baselines_H30_2008_01_CCO/predictions
+Number of unaligned proteins: 1557 out of 2921 (53.30366312906539 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2008_01/baselines_H30_2008_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2008_01: 149732
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2008_01/baselines_H30_2008_01_MFO/predictions
+Number of unaligned proteins: 1364 out of 2502 (54.51638689048761 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2008_01/baselines_H30_2008_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2007_03: 97247
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2007_03/baselines_H30_2007_03_BPO/predictions
+Number of unaligned proteins: 1711 out of 2676 (63.93871449925261 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2007_03/baselines_H30_2007_03_BPO/predictions
+Processing CCO...
+Proteins in DB version 2007_03: 19206
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2007_03/baselines_H30_2007_03_CCO/predictions
+Number of unaligned proteins: 2005 out of 2921 (68.64087641218761 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2007_03/baselines_H30_2007_03_CCO/predictions
+Processing MFO...
+Proteins in DB version 2007_03: 103787
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2007_03/baselines_H30_2007_03_MFO/predictions
+Number of unaligned proteins: 1422 out of 2502 (56.83453237410072 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2007_03/baselines_H30_2007_03_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2006_02: 16723
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2006_02/baselines_H30_2006_02_BPO/predictions
+Number of unaligned proteins: 1921 out of 2676 (71.78624813153961 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2006_02/baselines_H30_2006_02_BPO/predictions
+Processing CCO...
+Proteins in DB version 2006_02: 14397
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2006_02/baselines_H30_2006_02_CCO/predictions
+Number of unaligned proteins: 2169 out of 2921 (74.25539198904485 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2006_02/baselines_H30_2006_02_CCO/predictions
+Processing MFO...
+Proteins in DB version 2006_02: 17534
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2006_02/baselines_H30_2006_02_MFO/predictions
+Number of unaligned proteins: 1718 out of 2502 (68.66506794564349 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2006_02/baselines_H30_2006_02_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2005_01: 13798
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2005_01/baselines_H30_2005_01_BPO/predictions
+Number of unaligned proteins: 2005 out of 2676 (74.9252615844544 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2005_01/baselines_H30_2005_01_BPO/predictions
+Processing CCO...
+Proteins in DB version 2005_01: 11924
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2005_01/baselines_H30_2005_01_CCO/predictions
+Number of unaligned proteins: 2262 out of 2921 (77.43923313933584 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2005_01/baselines_H30_2005_01_CCO/predictions
+Processing MFO...
+Proteins in DB version 2005_01: 11930
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2005_01/baselines_H30_2005_01_MFO/predictions
+Number of unaligned proteins: 1958 out of 2502 (78.25739408473221 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2005_01/baselines_H30_2005_01_MFO/predictions
+Done!
+Processing BPO...
+Proteins in DB version 2003_12: 8962
+Proteins to annotate: 2676
+Naive Baseline predictions saved to ./2003_12/baselines_H30_2003_12_BPO/predictions
+Number of unaligned proteins: 2139 out of 2676 (79.93273542600897 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2003_12/baselines_H30_2003_12_BPO/predictions
+Processing CCO...
+Proteins in DB version 2003_12: 6113
+Proteins to annotate: 2921
+Naive Baseline predictions saved to ./2003_12/baselines_H30_2003_12_CCO/predictions
+Number of unaligned proteins: 2473 out of 2921 (84.66278671687778 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2003_12/baselines_H30_2003_12_CCO/predictions
+Processing MFO...
+Proteins in DB version 2003_12: 7140
+Proteins to annotate: 2502
+Naive Baseline predictions saved to ./2003_12/baselines_H30_2003_12_MFO/predictions
+Number of unaligned proteins: 2072 out of 2502 (82.81374900079936 %); No annotations have been transfered for alignment-based methods.
+Predictions saved to ./2003_12/baselines_H30_2003_12_MFO/predictions
+Done!
