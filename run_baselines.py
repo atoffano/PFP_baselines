@@ -121,7 +121,9 @@ def main():
     ):
         for aspect in ["BPO", "CCO", "MFO"]:
             print(f"Processing {aspect}...")
-            input_dir = f"./{db_version}/baselines_D1_{db_version}_{aspect}"
+            input_dir = (
+                f"./{db_version}/baselines_H30_{db_version}_{aspect}_2024_annotations"
+            )
             alignment_dir = "./2024_01/diamond_swissprot_2024_01_alignment.tsv"
 
             os.makedirs(input_dir, exist_ok=True)
@@ -141,21 +143,29 @@ def main():
             id_mapping = id_mapping.set_index("Entry Name").to_dict()["EntryID"]
 
             # Proteins to annotate
-            # test = pd.read_csv(
-            #     f"/home/atoffano/these-antoine/data/uniprotkb/H30_{aspect}_test.tsv",
-            #     sep="\t",
-            # )
             test = pd.read_csv(
-                f"/home/atoffano/these-antoine/data/BeProf/Dataset1/prop_nofilt/{aspect}_test.tsv",
+                f"/home/atoffano/these-antoine/data/uniprotkb/H30_{aspect}_test.tsv",
                 sep="\t",
             )
+            # test = pd.read_csv(
+            #     f"/home/atoffano/these-antoine/data/BeProf/Dataset1/prop_nofilt/{aspect}_test.tsv",
+            #     sep="\t",
+            # )
 
             test = test[["EntryID"]]
 
+            # Up to date annotations (2024_01 SwissProt version)
             train = pd.read_csv(
-                f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
+                f"./2024_01/swissprot_2024_01_{aspect}_annotations.tsv",
                 sep="\t",
             )
+
+            # Version-specific SwissProt annotations
+            # train = pd.read_csv(
+            #     f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
+            #     sep="\t",
+            # )
+
             # Replace train EntryID with EntryName using id_mapping
             train["EntryID"] = train["EntryID"].map(id_mapping)
             train = train[train["EntryID"].notna()]
