@@ -32,12 +32,12 @@ DB_VERSION=(
 # The folders are in the format "baselines_<DB_VERSION>_<ONTOLOGY>_<DATASET>"
 ALL_FOLDERS=""
 for DB_VERSION in "${DB_VERSION[@]}"; do
-    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "baselines_*" 2>/dev/null)
+    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "baselines_D1_*2024*" 2>/dev/null)
     ALL_FOLDERS="$ALL_FOLDERS"$'\n'"$FOLDERS"
 done
-# ---
+FOLDERS=$(echo "$ALL_FOLDERS" | grep -v '^$')
+#FOLDERS=$(echo "$ALL_FOLDERS" | grep -v '^$' | tac)
 
-FOLDERS=$(echo "$ALL_FOLDERS" | grep -v '^$' | tac)
 echo "Found the following folders:"
 echo "$FOLDERS"
 
@@ -52,11 +52,18 @@ for PRED_FOLDER in $FOLDERS; do
     for PRED_FILE in $PRED_FILE; do
         echo "Processing prediction file: $PRED_FILE"
 
-        # Check if eval_beprof_evaluation_results_detailed.pkl already exists, and skip if it does
-        if [[ -f "${PRED_FILE%.tsv}_eval_beprof_evaluation_results_detailed.pkl" ]]; then
-            echo "Evaluation results already exist for $PRED_FILE. Skipping..."
-            continue
+        OUTPUT_PATH=$(dirname "$PRED_FILE")
+        # if 'k*_' is in the path, add the k* to the output path
+        if [[ "$PRED_FILE" == *"k"* ]]; then
+            OUTPUT_PATH="${OUTPUT_PATH}/$(basename "$PRED_FILE" | cut -d'_' -f1)"
         fi
+
+        # Check if eval_beprof_evaluation_results_detailed.pkl already exists somewhere in the output path
+        # If it does, skip the evaluation
+        # if [[ -f "$OUTPUT_PATH/eval_beprof_evaluation_results_detailed.pkl" ]]; then
+        #     echo "Evaluation results already exist in $OUTPUT_PATH. Skipping evaluation."
+        #     continue
+        # fi
 
         # Get the ontology name from the prediction file name
         if [[ "$PRED_FOLDER" == *"CCO"* ]]; then
@@ -79,11 +86,6 @@ for PRED_FOLDER in $FOLDERS; do
         BACKGROUND="./background/background_${DATASET}_2024_01.pkl"
         TRUE_FILE="./${DATASET}_test_annotations/${DATASET}_${ONTOLOGY}_test.pkl"
         PRED_OUT="${PRED_FILE%.tsv}.pkl"
-        OUTPUT_PATH=$(dirname "$PRED_FILE")
-        # if 'k*_' is in the path, add the k* to the output path
-        if [[ "$PRED_FILE" == *"k"* ]]; then
-            OUTPUT_PATH="${OUTPUT_PATH}/$(basename "$PRED_FILE" | cut -d'_' -f1)"
-        fi
 
         echo "---"
         echo "Run directory: $PRED_FOLDER"
