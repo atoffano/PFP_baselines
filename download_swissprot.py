@@ -86,22 +86,6 @@ def dl_swissprot(file, url, db_version):
                 os.remove(os.path.join(root, fname))
 
 
-for db_version in tqdm.tqdm(DB_VERSIONS, desc="Downloading SwissProt releases"):
-    if "_" in db_version:
-        # Download recent SwissProt releases - from 2024 to 2010
-        rel = f"release-{db_version}_01"
-        file = f"uniprot_sprot-only{db_version}.tar.gz"
-        url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/{rel}/knowledgebase/{file}"
-        dl_swissprot(file, url, db_version)
-        print(f"Downloaded and extracted SwissProt {db_version}_01 annotations.")
-    else:
-        # Download older SwissProt releases - from 2009 to 2003
-        file = f"uniprot_sprot-only{db_version}.tar.gz"
-        url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release{rel}/knowledgebase/{file}"
-        dl_swissprot(file, url, db_version)
-        print(f"Downloaded and extracted SwissProt {db_version} annotations.")
-
-
 def parse_uniprot_dat(filepath):
     results = []
     print(f"Parsing {filepath} entries...")
@@ -143,65 +127,89 @@ def parse_uniprot_dat(filepath):
     return parsed
 
 
-# Parse all SwissProt releases and save annotations to TSV files
-for db_version in tqdm.tqdm(DB_VERSIONS, desc="Parsing SwissProt releases"):
-    year_folder = os.path.join(BASE_PATH, db_version)
-    dat_file = os.path.join(year_folder, "uniprot_sprot.dat")
-    output_file = os.path.join(year_folder, f"swissprot_{db_version}_annotations.tsv")
-    if not os.path.isfile(dat_file):
-        print(f"File not found: {dat_file}")
-        continue
-    entries = parse_uniprot_dat(dat_file)
-    with open(output_file, "w") as out:
-        out.write("EntryID\tEntry Name\tterm\tSequence\n")
-        for uniprot_id, entryid, go_terms, sequence in entries:
-            out.write(f"{uniprot_id}\t{entryid}\t{go_terms}\t{sequence}\n")
-    print(f"Wrote {output_file}")
+def main():
+    # Download SwissProt releases
+    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Downloading SwissProt releases"):
+        if "_" in db_version:
+            # Download recent SwissProt releases - from 2024 to 2010
+            rel = f"release-{db_version}_01"
+            file = f"uniprot_sprot-only{db_version}.tar.gz"
+            url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/{rel}/knowledgebase/{file}"
+            dl_swissprot(file, url, db_version)
+            print(f"Downloaded and extracted SwissProt {db_version}_01 annotations.")
+        else:
+            # Download older SwissProt releases - from 2009 to 2003
+            file = f"uniprot_sprot-only{db_version}.tar.gz"
+            url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release{rel}/knowledgebase/{file}"
+            dl_swissprot(file, url, db_version)
+            print(f"Downloaded and extracted SwissProt {db_version} annotations.")
 
-# Removes entries from all SwissProt releases that are not present in the latest release (2024_01)
-# This is mainly to avoid leakage from proteins that could have been renamed.
-ref_file = os.path.join(BASE_PATH, "2024_01/swissprot_2024_01_annotations.tsv")
-with open(ref_file) as f:
-    ref_ids = set(line.split("\t")[1] for i, line in enumerate(f) if i > 0)
-
-for db_version in tqdm.tqdm(DB_VERSIONS, desc="Filtering SwissProt releases"):
-    tsv_file = os.path.join(
-        BASE_PATH, f"{db_version}", f"swissprot_{db_version}_annotations.tsv"
-    )
-    if not os.path.isfile(tsv_file):
-        continue
-    # Read all lines
-    with open(tsv_file) as f:
-        lines = f.readlines()
-    header = lines[0]
-    filtered_lines = [header]
-    for line in lines[1:]:
-        entry_id = line.split("\t")[1]
-        if entry_id in ref_ids:
-            filtered_lines.append(line)
-    # Overwrite file with filtered entries
-    with open(tsv_file, "w") as f:
-        f.writelines(filtered_lines)
-    print(
-        f"Filtered {tsv_file}: {len(filtered_lines)-1} entries kept among {len(lines)-1} original entries."
-    )
-
-# Create a fasta file with all sequences from the latest SwissProt release (2024_01)
-# This will be used to align all proteins against each other.
-tsv_file = os.path.join(BASE_PATH, f"2024_01/swissprot_2024_01_annotations.tsv")
-fasta_file = os.path.join(BASE_PATH, f"2024_01/swissprot_2024_01.fasta")
-if not os.path.isfile(tsv_file):
-    print(f"TSV not found: {tsv_file}")
-# Read TSV and write FASTA
-records = []
-with open(tsv_file) as f:
-    next(f)  # skip header
-    for line in f:
-        parts = line.rstrip().split("\t")
-        entry_id, entry_name, go_terms, sequence = parts
-        if not sequence:
+    # Parse all SwissProt releases and save annotations to TSV files
+    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Parsing SwissProt releases"):
+        year_folder = os.path.join(BASE_PATH, db_version)
+        dat_file = os.path.join(year_folder, "uniprot_sprot.dat")
+        output_file = os.path.join(
+            year_folder, f"swissprot_{db_version}_annotations.tsv"
+        )
+        if not os.path.isfile(dat_file):
+            print(f"File not found: {dat_file}")
             continue
-        record = SeqRecord(Seq(sequence), id=entry_name, description="")
-        records.append(record)
-SeqIO.write(records, fasta_file, "fasta")
-print(f"Wrote {len(records)} records to {fasta_file}")
+        entries = parse_uniprot_dat(dat_file)
+        with open(output_file, "w") as out:
+            out.write("EntryID\tEntry Name\tterm\tSequence\n")
+            for uniprot_id, entryid, go_terms, sequence in entries:
+                out.write(f"{uniprot_id}\t{entryid}\t{go_terms}\t{sequence}\n")
+        print(f"Wrote {output_file}")
+
+    # Removes entries from all SwissProt releases that are not present in the latest release (2024_01)
+    # This is mainly to avoid leakage from proteins that could have been renamed from one version to another.
+    ref_file = os.path.join(BASE_PATH, "2024_01/swissprot_2024_01_annotations.tsv")
+    with open(ref_file) as f:
+        ref_ids = set(line.split("\t")[1] for i, line in enumerate(f) if i > 0)
+
+    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Filtering SwissProt releases"):
+        tsv_file = os.path.join(
+            BASE_PATH, f"{db_version}", f"swissprot_{db_version}_annotations.tsv"
+        )
+        if not os.path.isfile(tsv_file):
+            continue
+        # Read all lines
+        with open(tsv_file) as f:
+            lines = f.readlines()
+        header = lines[0]
+        filtered_lines = [header]
+        for line in lines[1:]:
+            entry_id = line.split("\t")[1]
+            if entry_id in ref_ids:
+                filtered_lines.append(line)
+        # Overwrite file with filtered entries
+        with open(tsv_file, "w") as f:
+            f.writelines(filtered_lines)
+        print(
+            f"Filtered {tsv_file}: {len(filtered_lines)-1} entries kept among {len(lines)-1} original entries."
+        )
+
+    # Create a fasta file with all sequences from the latest SwissProt release (2024_01)
+    # This will be used to align all proteins against each other.
+    tsv_file = os.path.join(BASE_PATH, f"2024_01/swissprot_2024_01_annotations.tsv")
+    fasta_file = os.path.join(BASE_PATH, f"2024_01/swissprot_2024_01.fasta")
+    if not os.path.isfile(tsv_file):
+        print(f"TSV not found: {tsv_file}")
+    # Read TSV and write FASTA
+    records = []
+    with open(tsv_file) as f:
+        next(f)  # skip header
+        for line in f:
+            parts = line.rstrip().split("\t")
+            entry_id, entry_name, go_terms, sequence = parts
+            if not sequence:
+                continue
+            record = SeqRecord(Seq(sequence), id=entry_name, description="")
+            records.append(record)
+    SeqIO.write(records, fasta_file, "fasta")
+    print(f"Wrote {len(records)} records to {fasta_file}")
+
+
+if __name__ == "__main__":
+    main()
+    print("SwissProt download and parsing completed successfully!")
