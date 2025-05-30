@@ -3,9 +3,6 @@ from collections import defaultdict
 import os
 import tqdm
 import ast
-from utils.ia import clean_ontology_edges, fetch_aspect
-import obonet
-from Bio import SeqIO
 
 
 def score(E):
@@ -91,6 +88,64 @@ def naive_baseline(input_dir, train, val):
     )
 
 
+def transfer_annotations(filtered_alignment, train, test, k_values):
+    # Annotations for each sequence in the known protein set (used to transfer annotations)
+    # Ts: A dictionary of annotations like {'protein_name': ['go_term1', 'go_term2', ...], ...}
+    Ts = train.groupby("EntryID")["term"].apply(list).to_dict()
+
+    filtered_alignment["subject_annotations"] = filtered_alignment["subject_id"].map(Ts)
+    filtered_alignment = filtered_alignment[
+        filtered_alignment["subject_annotations"].map(
+            lambda x: len(x) if isinstance(x, list) else 0
+        )
+        > 0
+    ]  # Drop rows without annotations (ie. val set proteins)
+
+    grouped = filtered_alignment.groupby(
+        "query_id"
+    )  # Group by validation protein for faster processing
+
+    ascore_pred = []
+    blastknn_preds_dict = {k: [] for k in k_values}
+
+    unaligned_proteins = 0
+    unaligned_protein_ids = []  # Store unannotated protein IDs
+    for protein in tqdm.tqdm(
+        test["EntryID"].unique(), desc="Computing Diamond-based predictions"
+    ):
+        try:
+            group = grouped.get_group(protein)
+        except KeyError:
+            unaligned_proteins += 1
+            unaligned_protein_ids.append(protein)
+            continue
+        assert (
+            not group["subject_id"].isin(test["EntryID"].unique()).any()
+        ), "Annotation leakage has been found beetween validation proteins !"
+
+        ascore_preds = alignment_score(group)  # Compute from all alignments
+        for k in k_values:  # Compute from k closest alignments
+            knn_preds = alignment_knn(group, k=k)
+
+            blastknn_preds_dict[k].extend(
+                [
+                    {"target_ID": protein, "term_ID": term_id, "score": score}
+                    for term_id, score in knn_preds.items()
+                ]
+            )
+
+        ascore_pred.extend(
+            [
+                {"target_ID": protein, "term_ID": term_id, "score": score}
+                for term_id, score in ascore_preds.items()
+            ]
+        )
+    print(
+        f"Number of unaligned proteins: {unaligned_proteins} out of {len(test['EntryID'].unique())} ({unaligned_proteins / test['EntryID'].nunique() * 100} %); No annotations have been transfered for alignment-based methods."
+    )
+    return unaligned_protein_ids, ascore_pred, blastknn_preds_dict
+
+
 def main():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     for db_version in tqdm.tqdm(
@@ -148,11 +203,11 @@ def main():
             #     sep="\t",
             # )
             test = pd.read_csv(
-                f"/home/atoffano/these-antoine/data/BeProf/Dataset1/prop_nofilt/{aspect}_test.tsv",
+                f"/home/atoffano/PFP_baselines/BeProf_D1/D1_{aspect}_annotations.tsv",
                 sep="\t",
             )
 
-            test = test[["EntryID"]]
+            test = test[["target_ID"]]
 
             # Up to date annotations (2024_01 SwissProt version)
             train = pd.read_csv(
@@ -239,73 +294,20 @@ def main():
 
             ## --- 2024_annots
             # Filter alignments to keep subjects in db_version_proteins
-            print(
-                f"Number of proteins before 2024_annotations filtering: {filtered_alignment['subject_id'].nunique()}"
-            )
             filtered_alignment = filtered_alignment[
                 filtered_alignment["subject_id"].isin(db_version_proteins)
             ]  # Filter to include only proteins in the current db_version_annots
-            print(
-                f"Number of proteins after 2024_annotations filtering: {filtered_alignment['subject_id'].nunique()}"
-            )
             ## ---
 
-            # Annotations for each sequence in the known protein set (used to transfer annotations)
-            # Ts: A dictionary of annotations like {'protein_name': ['go_term1', 'go_term2', ...], ...}
-            Ts = train.groupby("EntryID")["term"].apply(list).to_dict()
-
-            filtered_alignment["subject_annotations"] = filtered_alignment[
-                "subject_id"
-            ].map(Ts)
-            filtered_alignment = filtered_alignment[
-                filtered_alignment["subject_annotations"].map(
-                    lambda x: len(x) if isinstance(x, list) else 0
+            unaligned_protein_ids, ascore_pred, blastknn_preds_dict = (
+                transfer_annotations(
+                    filtered_alignment,
+                    train,
+                    test,
+                    k_values,
                 )
-                > 0
-            ]  # Drop rows without annotations (ie. val set proteins)
-
-            grouped = filtered_alignment.groupby(
-                "query_id"
-            )  # Group by validation protein for faster processing
-
-            ascore_pred = []
-            blastknn_preds_dict = {k: [] for k in k_values}
-
-            unaligned_proteins = 0
-            unaligned_protein_ids = []  # Store unannotated protein IDs
-            for protein in tqdm.tqdm(
-                test["EntryID"].unique(), desc="Computing Diamond-based predictions"
-            ):
-                try:
-                    group = grouped.get_group(protein)
-                except KeyError:
-                    unaligned_proteins += 1
-                    unaligned_protein_ids.append(protein)
-                    continue
-                assert (
-                    not group["subject_id"].isin(test["EntryID"].unique()).any()
-                ), "Annotation leakage has been found beetween validation proteins !"
-
-                ascore_preds = alignment_score(group)  # Compute from all alignments
-                for k in k_values:  # Compute from k closest alignments
-                    knn_preds = alignment_knn(group, k=k)
-
-                    blastknn_preds_dict[k].extend(
-                        [
-                            {"target_ID": protein, "term_ID": term_id, "score": score}
-                            for term_id, score in knn_preds.items()
-                        ]
-                    )
-
-                ascore_pred.extend(
-                    [
-                        {"target_ID": protein, "term_ID": term_id, "score": score}
-                        for term_id, score in ascore_preds.items()
-                    ]
-                )
-            print(
-                f"Number of unaligned proteins: {unaligned_proteins} out of {len(test['EntryID'].unique())} ({unaligned_proteins / test['EntryID'].nunique() * 100} %); No annotations have been transfered for alignment-based methods."
             )
+
             # Write unannotated proteins to a txt file
             unannotated_path = os.path.join(
                 input_dir, f"unaligned_proteins_D1_{db_version}_{aspect}.txt"

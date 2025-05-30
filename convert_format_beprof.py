@@ -12,6 +12,9 @@ def convert_predictions(pred_file, subontology):
     into a dictionary where each protein gets a 'bp' dictionary of GO term predictions.
     """
     df = pd.read_csv(pred_file, sep="\t")
+    # Split term column by '; ' and explode
+    df["term_ID"] = df["term_ID"].str.split("; ")
+    df = df.explode("term_ID")
     pred_dict = {}
     for prot, group in tqdm.tqdm(df.groupby("target_ID")):
         if subontology == "all":
@@ -44,7 +47,6 @@ def main():
         subontology = "mf"
     else:
         subontology = "all"
-    # Convert files
     pred_dict = convert_predictions(args.pred_file, subontology)
 
     # Save dictionaries as pickle files

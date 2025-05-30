@@ -8,7 +8,7 @@ import pickle
 def parse_terms(terms_str):
     # Convert the string representation of a list to an actual list using ast.literal_eval
     try:
-        return set(ast.literal_eval(terms_str))
+        return set(terms_str.split("; "))
     except Exception as e:
         print(f"Error parsing terms: {terms_str}\n{e}")
         return set()
@@ -21,13 +21,13 @@ def load_file(annot_path, test_path):
     """
     df = pd.read_csv(annot_path, sep="\t")
     test_proteins = pd.read_csv(test_path, sep="\t")
-    test_proteins = set(test_proteins["target_ID"].tolist())
+    test_proteins = set(test_proteins["EntryID"].tolist())
     prot_dict = {}
     for _, row in df.iterrows():
         prot = row["EntryID"]
         if (
             prot not in test_proteins
-        ):  # Proteins waiting for annotation do not contribute to Information Content calculation
+        ):  # Proteins waiting for annotation do not contribute to IC calculation
             terms = parse_terms(row["term"])
             prot_dict[prot] = terms
     return prot_dict

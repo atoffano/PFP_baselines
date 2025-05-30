@@ -20,14 +20,16 @@ def process_file(input_file):
 
     # Read the input file
     df = pd.read_csv(input_file, sep="\t")
+    df["term"] = df["term"].str.split("; ")
+    df = df.explode("term")
 
     # Build the nested dictionary for pickling
     protein_go_terms = defaultdict(
         lambda: {"all_bp": set(), "all_cc": set(), "all_mf": set()}
     )
     for _, row in df.iterrows():
-        protein_id = row["target_ID"]
-        term_id = row["term_ID"]
+        protein_id = row["EntryID"]
+        term_id = row["term"]
         protein_go_terms[protein_id][ontology_key].add(term_id)
 
     # Convert defaultdict to regular dict for pickling

@@ -4,27 +4,28 @@ PRED_FOLDER="."
 
 ## --- DB version study folders ---
 DB_VERSION=(
-    "2024_01"
-    "2023_01"
-    "2022_01"
-    "2021_01"
-    "2020_01"
-    "2019_01"
-    "2018_01"
-    "2017_01"
-    "2016_01"
-    "2015_01"
-    "2014_01"
-    "2013_01"
-    "2012_01"
-    "2011_01"
-    "2010_01"
-    "2009_03"
-    "2008_01"
-    "2007_03"
-    "2006_02"
-    "2005_01"
-    "2003_12"
+    # "2024_01"
+    # "2023_01"
+    # "2022_01"
+    # "2021_01"
+    # "2020_01"
+    # "2019_01"
+    # "2018_01"
+    # "2017_01"
+    # "2016_01"
+    # "2015_01"
+    # "2014_01"
+    # "2013_01"
+    # "2012_01"
+    # "2011_01"
+    # "2010_01"
+    # "2009_03"
+    # "2008_01"
+    # "2007_03"
+    # "2006_02"
+    # "2005_01"
+    # "2003_12"
+    "D1_constrained_experiment"
 )
 
 # Get all folders in the prediction folder
@@ -32,7 +33,7 @@ DB_VERSION=(
 # The folders are in the format "baselines_<DB_VERSION>_<ONTOLOGY>_<DATASET>"
 ALL_FOLDERS=""
 for DB_VERSION in "${DB_VERSION[@]}"; do
-    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "baselines_D1_*2024*" 2>/dev/null)
+    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "baselines_*" 2>/dev/null)
     ALL_FOLDERS="$ALL_FOLDERS"$'\n'"$FOLDERS"
 done
 FOLDERS=$(echo "$ALL_FOLDERS" | grep -v '^$')
@@ -83,7 +84,7 @@ for PRED_FOLDER in $FOLDERS; do
             DATASET="H30"
         fi
         
-        BACKGROUND="./background/background_${DATASET}_2024_01.pkl"
+        BACKGROUND="./background/background_${DATASET}.pkl"
         TRUE_FILE="./${DATASET}_test_annotations/${DATASET}_${ONTOLOGY}_test.pkl"
         PRED_OUT="${PRED_FILE%.tsv}.pkl"
 
@@ -107,7 +108,7 @@ for PRED_FOLDER in $FOLDERS; do
                             --output_path "$OUTPUT_PATH" \
                             --true "$TRUE_FILE" \
                             --background "$BACKGROUND" \
-                            --go "/home/atoffano/these-antoine/data/ontologies/go.obo" \
+                            --go "go.obo" \
                             --metrics "0,1,2,3,4"
 
         # Remove created pkl files once done

@@ -4,11 +4,8 @@ import networkx as nx
 import tqdm
 import pandas as pd
 
-os.chdir("/home/atoffano/these-antoine/")
-from utils.preprocessing import obsolete_terms, alt_id_terms
-from utils.ia import propagate_terms, clean_ontology_edges, fetch_aspect
-
-dates = [
+BASE_PATH = "."
+DB_VERSIONS = [
     "2024_01",
     "2023_01",
     "2022_01",
@@ -24,67 +21,147 @@ dates = [
     "2012_01",
     "2011_01",
     "2010_01",
-    "2009_03",
-    "2008_01",
-    "2007_03",
-    "2006_02",
-    "2005_01",
-    "2003_12",
+    "15.0",
+    "13.0",
+    "10.0",
+    "7.0",
+    "4.0",
+    "1.0",
 ]
 BASE_PATH = "/home/atoffano/PFP_baselines"
 
-# Load GO ontology
-obo_file_path = "/home/atoffano/these-antoine/data/ontologies/go.obo"
-ontology_graph = obonet.read_obo(obo_file_path)
-ontology_graph = clean_ontology_edges(ontology_graph)
 
-# Get obsolete and alternative terms
-obsolete, old_to_new = obsolete_terms(obo_file_path)
-alt_to_term = alt_id_terms(obo_file_path)
+def propagate_terms(terms_df, subontologies):
+    """
+    Propagate terms in DataFrame terms_df abbording to the structure in subontologies.
+    If terms were already propagated with the same graph, the returned dataframe will be equivalent to the input
 
-# Get subontologies and mappings
-roots = {"BPO": "GO:0008150", "CCO": "GO:0005575", "MFO": "GO:0003674"}
-subontologies = {
-    aspect: fetch_aspect(ontology_graph, roots[aspect]) for aspect in roots
-}
-aspect2go = {aspect: list(subontologies[aspect].nodes) for aspect in roots}
-go2aspect = {go: aspect for aspect, go_list in aspect2go.items() for go in go_list}
+    :param terms_df: pandas DataFrame of annotated terms (column names 'EntryID', 'term' 'aspect')
+    :param subontologies: dict of ontology aspects (networkx DiGraphs or MultiDiGraphs)
+    """
 
-ontologies = {"BPO": "bp", "CCO": "cc", "MFO": "mf"}
+    # Look up ancestors ahead of time for efficiency
+    subont_terms = {
+        aspect: set(terms_df[terms_df.aspect == aspect].term.values)
+        for aspect in subontologies.keys()
+    }
+    ancestor_lookup = {
+        aspect: {
+            t: nx.descendants(subont, t) for t in subont_terms[aspect] if t in subont
+        }
+        for aspect, subont in subontologies.items()
+    }
 
-
-for date in tqdm.tqdm(dates):
-    print(f"Propagating terms from version: {date}...")
-    tsv_file = os.path.join(BASE_PATH, f"{date}", f"swissprot_{date}_annotations.tsv")
-    # Load df
-    swissprot = pd.read_csv(tsv_file, sep="\t")
-    swissprot = swissprot[["Entry Name", "term"]]
-    # Rename Entry Name to EntryID
-    swissprot = swissprot.rename(columns={"Entry Name": "EntryID"})
-    swissprot["term"] = swissprot["term"].str.replace(" ", "").str.split(";")
-
-    df_exploded = swissprot.explode("term").dropna()
-    df_exploded["aspect"] = df_exploded["term"].map(go2aspect)
-    df_exploded = df_exploded.dropna(subset=["aspect"])
-
-    df_exploded = df_exploded.drop_duplicates()
-    df_exploded = df_exploded[df_exploded["term"].notna()]
-    print(df_exploded)
-    # Split according to aspect
-    for aspect in ["BPO", "CCO", "MFO"]:
-        df_aspect = df_exploded[df_exploded["aspect"] == aspect].drop_duplicates()
-        # Propagate annotations
-        print("Propagating annotations...")
-        df_prop = propagate_terms(df_aspect, {aspect: subontologies[aspect]})
-
-        # Group terms by protein
-        df_grouped = df_prop.groupby("EntryID")["term"].apply(list).reset_index()
-
-        # Save to TSV
-        output_filename = os.path.join(
-            BASE_PATH,
-            f"{date}",
-            f"swissprot_{date}_{aspect}_annotations.tsv",
+    propagated_terms = []
+    for (protein, aspect), entry_df in tqdm.tqdm(
+        terms_df.groupby(["EntryID", "aspect"]),
+        desc="Propagating terms",
+        total=len(terms_df),
+    ):
+        protein_terms = set().union(
+            *[list(ancestor_lookup[aspect][t]) + [t] for t in set(entry_df.term.values)]
         )
-        df_grouped.to_csv(output_filename, sep="\t", index=False)
-        print(f"Saved {output_filename}")
+
+        propagated_terms += [
+            {"EntryID": protein, "term": t, "aspect": aspect} for t in protein_terms
+        ]
+
+    return pd.DataFrame(propagated_terms)
+
+
+def clean_ontology_edges(ontology):
+    """
+    Remove all ontology edges except types "is_a" and "part_of" and ensure there are no inter-ontology edges
+    :param ontology: Ontology stucture (networkx DiGraph or MultiDiGraph)
+    """
+
+    # keep only "is_a" and "part_of" edges (All the "regulates" edges are in BPO)
+    remove_edges = [
+        (i, j, k) for i, j, k in ontology.edges if not (k == "is_a" or k == "part_of")
+    ]
+
+    ontology.remove_edges_from(remove_edges)
+
+    # There should not be any cross-ontology edges, but we verify here
+    crossont_edges = [
+        (i, j, k)
+        for i, j, k in ontology.edges
+        if ontology.nodes[i]["namespace"] != ontology.nodes[j]["namespace"]
+    ]
+    if len(crossont_edges) > 0:
+        ontology.remove_edges_from(crossont_edges)
+
+    return ontology
+
+
+def fetch_aspect(ontology, root: str):
+    """
+    Return a subgraph of an ontology starting at node <root>
+
+    :param ontology: Ontology stucture (networkx DiGraph or MultiDiGraph)
+    :param root: node name (GO term) to start subgraph
+    """
+
+    namespace = ontology.nodes[root]["namespace"]
+    aspect_nodes = [
+        n for n, v in ontology.nodes(data=True) if v["namespace"] == namespace
+    ]
+    subont_ = ontology.subgraph(aspect_nodes)
+    return subont_
+
+
+def main():
+    """
+    Main function to propagate GO terms from SwissProt annotations.
+    It reads the GO ontology, processes SwissProt releases, and saves propagated annotations.
+    """
+    # Load GO ontology
+    obo_file_path = "/home/atoffano/these-antoine/data/ontologies/go.obo"
+    ontology_graph = obonet.read_obo(obo_file_path)
+    ontology_graph = clean_ontology_edges(ontology_graph)
+
+    # Get subontologies and mappings
+    roots = {"BPO": "GO:0008150", "CCO": "GO:0005575", "MFO": "GO:0003674"}
+    subontologies = {
+        aspect: fetch_aspect(ontology_graph, roots[aspect]) for aspect in roots
+    }
+    aspect2go = {aspect: list(subontologies[aspect].nodes) for aspect in roots}
+    go2aspect = {go: aspect for aspect, go_list in aspect2go.items() for go in go_list}
+
+    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Processing SwissProt releases"):
+        print(f"Propagating terms from version: {db_version}...")
+        tsv_file = os.path.join(
+            BASE_PATH, f"{db_version}", f"swissprot_{db_version}_annotations.tsv"
+        )
+        # Load df
+        swissprot = pd.read_csv(tsv_file, sep="\t")
+        swissprot = swissprot[["Entry Name", "term"]]
+        # Rename Entry Name to EntryID
+        swissprot = swissprot.rename(columns={"Entry Name": "EntryID"})
+        swissprot["term"] = swissprot["term"].str.replace(" ", "").str.split(";")
+
+        df_exploded = swissprot.explode("term").dropna()
+        df_exploded["aspect"] = df_exploded["term"].map(go2aspect)
+        df_exploded = df_exploded.dropna(subset=["aspect"])
+
+        df_exploded = df_exploded.drop_duplicates()
+        df_exploded = df_exploded[df_exploded["term"].notna()]
+        print(df_exploded)
+        # Split according to aspect
+        for aspect in ["BPO", "CCO", "MFO"]:
+            df_aspect = df_exploded[df_exploded["aspect"] == aspect].drop_duplicates()
+            # Propagate annotations
+            print("Propagating annotations...")
+            df_prop = propagate_terms(df_aspect, {aspect: subontologies[aspect]})
+
+            # Group terms by protein
+            df_grouped = df_prop.groupby("EntryID")["term"].apply(list).reset_index()
+
+            # Save to TSV
+            output_filename = os.path.join(
+                BASE_PATH,
+                f"{db_version}",
+                f"swissprot_{db_version}_{aspect}_annotations.tsv",
+            )
+            df_grouped.to_csv(output_filename, sep="\t", index=False)
+            print(f"Saved {output_filename}")
