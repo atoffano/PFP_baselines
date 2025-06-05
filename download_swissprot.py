@@ -132,11 +132,11 @@ def main():
     for db_version in tqdm.tqdm(DB_VERSIONS, desc="Downloading SwissProt releases"):
         if "_" in db_version:
             # Download recent SwissProt releases - from 2024 to 2010
-            rel = f"release-{db_version}_01"
+            rel = f"release-{db_version}"
             file = f"uniprot_sprot-only{db_version}.tar.gz"
             url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/{rel}/knowledgebase/{file}"
             dl_swissprot(file, url, db_version)
-            print(f"Downloaded and extracted SwissProt {db_version}_01 annotations.")
+            print(f"Downloaded and extracted SwissProt {db_version} annotations.")
         else:
             # Download older SwissProt releases - from 2009 to 2003
             file = f"uniprot_sprot-only{db_version}.tar.gz"

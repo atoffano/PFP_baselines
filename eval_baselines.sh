@@ -25,7 +25,8 @@ DB_VERSION=(
     # "2006_02"
     # "2005_01"
     # "2003_12"
-    "D1_constrained_experiment"
+    #"D1_constrained_experiment"
+    "GNN"
 )
 
 # Get all folders in the prediction folder
@@ -33,7 +34,7 @@ DB_VERSION=(
 # The folders are in the format "baselines_<DB_VERSION>_<ONTOLOGY>_<DATASET>"
 ALL_FOLDERS=""
 for DB_VERSION in "${DB_VERSION[@]}"; do
-    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "baselines_*" 2>/dev/null)
+    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "GNN*" 2>/dev/null)
     ALL_FOLDERS="$ALL_FOLDERS"$'\n'"$FOLDERS"
 done
 FOLDERS=$(echo "$ALL_FOLDERS" | grep -v '^$')
@@ -48,7 +49,8 @@ for PRED_FOLDER in $FOLDERS; do
 
     # Get all prediction files tsv in the run directory.
     # Remove the method name from grep if you want to skip its evaluation
-    PRED_FILE=$(find "$PRED_FOLDER" -type f -name "*.tsv" | grep -E "AlignmentScore|BlastKNN|NaiveBaseline")
+    PRED_FILE=$(find "$PRED_FOLDER" -type f -name "*.tsv" | grep -E "GNN")
+    #PRED_FILE=$(find "$PRED_FOLDER" -type f -name "*.tsv" | grep -E "AlignmentScore|BlastKNN|NaiveBaseline")
 
     for PRED_FILE in $PRED_FILE; do
         echo "Processing prediction file: $PRED_FILE"
@@ -61,10 +63,10 @@ for PRED_FOLDER in $FOLDERS; do
 
         # Check if eval_beprof_evaluation_results_detailed.pkl already exists somewhere in the output path
         # If it does, skip the evaluation
-        # if [[ -f "$OUTPUT_PATH/eval_beprof_evaluation_results_detailed.pkl" ]]; then
-        #     echo "Evaluation results already exist in $OUTPUT_PATH. Skipping evaluation."
-        #     continue
-        # fi
+        if [[ -f "$OUTPUT_PATH/eval_beprof_evaluation_results_detailed.pkl" ]]; then
+            echo "Evaluation results already exist in $OUTPUT_PATH. Skipping evaluation."
+            continue
+        fi
 
         # Get the ontology name from the prediction file name
         if [[ "$PRED_FOLDER" == *"CCO"* ]]; then

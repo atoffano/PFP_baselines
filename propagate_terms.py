@@ -4,7 +4,6 @@ import networkx as nx
 import tqdm
 import pandas as pd
 
-BASE_PATH = "."
 DB_VERSIONS = [
     "2024_01",
     "2023_01",
@@ -28,7 +27,6 @@ DB_VERSIONS = [
     "4.0",
     "1.0",
 ]
-BASE_PATH = "/home/atoffano/PFP_baselines"
 
 
 def propagate_terms(terms_df, subontologies):
@@ -130,9 +128,7 @@ def main():
 
     for db_version in tqdm.tqdm(DB_VERSIONS, desc="Processing SwissProt releases"):
         print(f"Propagating terms from version: {db_version}...")
-        tsv_file = os.path.join(
-            BASE_PATH, f"{db_version}", f"swissprot_{db_version}_annotations.tsv"
-        )
+        tsv_file = f"./{db_version}/swissprot_{db_version}_annotations.tsv"
         # Load df
         swissprot = pd.read_csv(tsv_file, sep="\t")
         swissprot = swissprot[["Entry Name", "term"]]
@@ -147,21 +143,24 @@ def main():
         df_exploded = df_exploded.drop_duplicates()
         df_exploded = df_exploded[df_exploded["term"].notna()]
         print(df_exploded)
-        # Split according to aspect
+        # Split by aspect and propagate annotations
         for aspect in ["BPO", "CCO", "MFO"]:
             df_aspect = df_exploded[df_exploded["aspect"] == aspect].drop_duplicates()
             # Propagate annotations
             print("Propagating annotations...")
             df_prop = propagate_terms(df_aspect, {aspect: subontologies[aspect]})
 
-            # Group terms by protein
+            # Group by protein and join terms
             df_grouped = df_prop.groupby("EntryID")["term"].apply(list).reset_index()
-
-            # Save to TSV
-            output_filename = os.path.join(
-                BASE_PATH,
-                f"{db_version}",
-                f"swissprot_{db_version}_{aspect}_annotations.tsv",
+            df_grouped["term"] = df_grouped["term"].apply(
+                lambda x: "; ".join(map(str, x))
+            )
+            output_filename = (
+                f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv"
             )
             df_grouped.to_csv(output_filename, sep="\t", index=False)
             print(f"Saved {output_filename}")
+
+
+if __name__ == "__main__":
+    main()

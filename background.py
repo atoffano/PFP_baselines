@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import pandas as pd
-import ast
 import argparse
 import pickle
+import os
 
 
 def parse_terms(terms_str):
@@ -79,6 +79,9 @@ def main():
             "all_mf": mfo_dict.get(prot, set()),
         }
 
+    output_dir = args.output.rsplit("/", 1)[0]
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     # Save the merged dictionary as pandas df
     with open(args.output, "wb") as f:
         pickle.dump(result, f)

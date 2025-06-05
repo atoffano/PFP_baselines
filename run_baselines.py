@@ -2,7 +2,6 @@ import pandas as pd
 from collections import defaultdict
 import os
 import tqdm
-import ast
 
 
 def score(E):
@@ -153,6 +152,7 @@ def main():
             "2024_01",
             "2023_01",
             "2022_01",
+            "2022_04",
             "2021_01",
             "2020_01",
             "2019_01",
@@ -203,11 +203,11 @@ def main():
             #     sep="\t",
             # )
             test = pd.read_csv(
-                f"/home/atoffano/PFP_baselines/BeProf_D1/D1_{aspect}_annotations.tsv",
+                f"/home/atoffano/PFP_baselines/D1_test_annotations/D1_{aspect}_test.tsv",
                 sep="\t",
             )
 
-            test = test[["target_ID"]]
+            test = test[["EntryID"]]
 
             # Up to date annotations (2024_01 SwissProt version)
             train = pd.read_csv(
@@ -222,23 +222,7 @@ def main():
                 ~train["EntryID"].isin(test["EntryID"].unique())
             ]  # Avoid leakage
 
-            ## --- 2024_annots
-            # Fixed annotations to 2024 - Evaluate impact of alignment
-            # Version-specific SwissProt annotations
-            db_version_annots = pd.read_csv(
-                f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
-                sep="\t",
-            )
-            db_version_annots["EntryID"] = db_version_annots["EntryID"].map(id_mapping)
-            db_version_proteins = db_version_annots["EntryID"].unique()
-            # Filter train to only include proteins in db_version_annots
-            train = train[
-                train["EntryID"].isin(db_version_proteins)
-            ]  # Filter to include only proteins in the current db_version_annots
-            # ---
-
-            train = train[train["term"].notna()]
-            train["term"] = train["term"].apply(lambda x: ast.literal_eval(x))
+            train["term"] = train["term"].str.split("; ")
             train = train.dropna().explode("term").drop_duplicates()
 
             print(f'Proteins in DB version {db_version}: {train["EntryID"].nunique()}')
@@ -286,18 +270,11 @@ def main():
                 pairwise_alignment["query_id"] != pairwise_alignment["subject_id"]
             ]
 
-            # Keep only alignments between protein to annotate and protein that transfer annotations
+            # Keep only alignments between proteins to annotate and protein that transfer annotations
             filtered_alignment = filtered_alignment[
                 filtered_alignment["query_id"].isin(test["EntryID"].unique())
                 & filtered_alignment["subject_id"].isin(train["EntryID"].unique())
             ]
-
-            ## --- 2024_annots
-            # Filter alignments to keep subjects in db_version_proteins
-            filtered_alignment = filtered_alignment[
-                filtered_alignment["subject_id"].isin(db_version_proteins)
-            ]  # Filter to include only proteins in the current db_version_annots
-            ## ---
 
             unaligned_protein_ids, ascore_pred, blastknn_preds_dict = (
                 transfer_annotations(

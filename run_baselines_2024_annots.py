@@ -61,7 +61,7 @@ def main():
             #     sep="\t",
             # )
             test = pd.read_csv(
-                f"/home/atoffano/these-antoine/data/BeProf/Dataset1/prop_nofilt/{aspect}_test.tsv",
+                f"/home/atoffano/PFP_baselines/D1_test_annotations/D1_{aspect}_test.tsv",
                 sep="\t",
             )
 
