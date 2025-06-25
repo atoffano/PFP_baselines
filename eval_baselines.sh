@@ -34,7 +34,7 @@ DB_VERSION=(
 # The folders are in the format "baselines_<DB_VERSION>_<ONTOLOGY>_<DATASET>"
 ALL_FOLDERS=""
 for DB_VERSION in "${DB_VERSION[@]}"; do
-    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "GNN*" 2>/dev/null)
+    FOLDERS=$(find "$PRED_FOLDER/$DB_VERSION" -maxdepth 1 -type d -name "baselines_gnn*" 2>/dev/null)
     ALL_FOLDERS="$ALL_FOLDERS"$'\n'"$FOLDERS"
 done
 FOLDERS=$(echo "$ALL_FOLDERS" | grep -v '^$')
@@ -49,7 +49,7 @@ for PRED_FOLDER in $FOLDERS; do
 
     # Get all prediction files tsv in the run directory.
     # Remove the method name from grep if you want to skip its evaluation
-    PRED_FILE=$(find "$PRED_FOLDER" -type f -name "*.tsv" | grep -E "GNN")
+    PRED_FILE=$(find "$PRED_FOLDER" -type f -name "*.tsv" | grep -E "BlastKNN")
     #PRED_FILE=$(find "$PRED_FOLDER" -type f -name "*.tsv" | grep -E "AlignmentScore|BlastKNN|NaiveBaseline")
 
     for PRED_FILE in $PRED_FILE; do

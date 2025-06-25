@@ -114,7 +114,7 @@ def main():
     It reads the GO ontology, processes SwissProt releases, and saves propagated annotations.
     """
     # Load GO ontology
-    obo_file_path = "/home/atoffano/these-antoine/data/ontologies/go.obo"
+    obo_file_path = "./go.obo"
     ontology_graph = obonet.read_obo(obo_file_path)
     ontology_graph = clean_ontology_edges(ontology_graph)
 

@@ -65,7 +65,7 @@ echo "Creating Diamond database..."
 diamond makedb --in 2024_01/swissprot_2024_01.fasta -d 2024_01/swissprot_2024_01_proteins_set
 
 echo "Running Diamond blast on protein sequences against themselves..."
-diamond blastp --very-sensitive --db 2024_01/swissprot_2024_01_proteins_set.dmnd --query 2024_01/swissprot_2024_01.fasta --out 2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001
+diamond blastp --very-sensitive --db 2024_01/swissprot_2024_01_proteins_set.dmnd --query 2024_01/swissprot_2024_01.fasta --out 2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001 --ultra-sensitive
 ```
 This step creates a Diamond database from the SwissProt protein sequences and performs a sequence alignment to find similar proteins. The output will be stored in `2024_01/diamond_swissprot_2024_01_alignment.tsv`.
 Note that as the 2024 release of SwissProt contains >500,000 proteins, the alignment step can take a while (around 1 hour).
@@ -109,12 +109,12 @@ For fine-grained control over the evaluation, you can run the following commands
 
 ```sh 
 # Convert the predictions to the .pkl format required by the BeProf evaluation script
-python convert_format_beprof.py --pred_file "$PRED_FILE" --pred_out 'path/to/predictions.pkl'
+python convert_format_beprof.py --pred_file 'path/to/predictions.tsv' --pred_out 'path/to/predictions.pkl'
 # Run the actual evaluation
 python beprof_eval.py --predict 'path/to/predictions.pkl' \
                       --output_path 'output/path' \
                       --true 'path/to/ground_truth_annotations.tsv' \
-                      --background "$BACKGROUND" \
+                      --background 'path/to/background.pkl' \
                       --go "go.obo" \
                       --metrics "0,1,2,3,4"
 ```
@@ -124,4 +124,4 @@ See the  [BeProf evaluation script github](https://github.com/CSUBioGroup/BeProf
 
 ### Notes
 Adjust file paths and parameters as needed for your specific setup.
-Additional performance could likely be further squeezed by augmenting the Diamond sensitivity to `--ultra-sensitive` and by tuning the scoring functions and parameters of the baseline according to the following paper: [A large-scale assessment of sequence database search tools for homology-based protein function prediction](https://doi.org/10.1093/bib/bbae349).
+Additional performance could likely be further squeezed by tuning the scoring functions and parameters of the baseline according to the following paper: [A large-scale assessment of sequence database search tools for homology-based protein function prediction](https://doi.org/10.1093/bib/bbae349).
