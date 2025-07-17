@@ -48,34 +48,41 @@ Download all necessary information (e.g., protein sequences, GO annotations) fro
 python download_swissprot.py
 ```
 
+
 ### 2. Propagation
 Propagate GO annotations using the ontology structure:
 
 ```sh
-python scripts/propagate_annotations.py --input data/parsed_annotations.tsv --ontology data/go.obo --output data/propagated_annotations.tsv
+python propagate_annotations.py
 ```
 This step uses the GO ontology to propagate annotations from parent to child terms, ensuring that all relevant annotations are included.
-Note that the propagation step can take a while.
+Note that propagating terms can take a while.
 
 ### 3. Alignment
 Run sequence alignment using Diamond on the most up-to-date SwissProt database:
 
 ```sh
 echo "Creating Diamond database..."
-diamond makedb --in 2024_01/swissprot_2024_01.fasta -d 2024_01/swissprot_2024_01_proteins_set
+diamond makedb --in data/2024_01/swissprot_2024_01.fasta -d data/2024_01/swissprot_2024_01_proteins_set
 
 echo "Running Diamond blast on protein sequences against themselves..."
-diamond blastp --very-sensitive --db 2024_01/swissprot_2024_01_proteins_set.dmnd --query 2024_01/swissprot_2024_01.fasta --out 2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001 --ultra-sensitive
+diamond blastp --very-sensitive --db data/swissprot/2024_01/swissprot_2024_01_proteins_set.dmnd --query data/swissprot/2024_01/swissprot_2024_01.fasta --out data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001 --ultra-sensitive
 ```
-This step creates a Diamond database from the SwissProt protein sequences and performs a sequence alignment to find similar proteins. The output will be stored in `2024_01/diamond_swissprot_2024_01_alignment.tsv`.
-Note that as the 2024 release of SwissProt contains >500,000 proteins, the alignment step can take a while (around 1 hour).
+This step creates a Diamond database from the SwissProt protein sequences and performs a sequence alignment to find similar proteins. The output will be stored in `data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv`.
+Note that as the 2024 release of SwissProt contains >500,000 proteins, the all-vs-all alignment step can be long (about 1 hour).
 
 ### 4. Running Baselines
 ```sh
-python baselines.py --dataset D1
+python main.py \
+--dataset D1 \
+--output_dir ./atgo/baselines_unconstrained \
+--alignment_dir ./2024_01/diamond_swissprot_2024_01_alignment.tsv \
+--k_values 1 3 5 10 15 20 \
+--aspects BPO CCO MFO \
+--db_versions 2024_01
 ```
-Run the baseline methods (e.g., Naive, Diamond-KNN, AlignmentScore). If running on all Swissprot versions, this can take a while. Dataset can be set to `D1` (BeProf D1 dataset) or `H30` (Low homology dataset).
-To greatly speed up the process, you can skip the Naive baseline by uncommenting the corresponding line in the `baselines.py` script.
+Run the baseline methods (e.g., Naive, Diamond-KNN, AlignmentScore). If running on all Swissprot versions, this can take a while. Dataset can be set to `D1` (BeProf D1 dataset), `H30` (Low homology dataset) or `ATGO`.
+To greatly speed up the process, you can skip the Naive baseline by uncommenting the corresponding line in the `main.py` script.
 
 
 ### 5. Preparing the evaluation

@@ -114,7 +114,7 @@ def main():
     It reads the GO ontology, processes SwissProt releases, and saves propagated annotations.
     """
     # Load GO ontology
-    obo_file_path = "./go.obo"
+    obo_file_path = "./data/go.obo"
     ontology_graph = obonet.read_obo(obo_file_path)
     ontology_graph = clean_ontology_edges(ontology_graph)
 
@@ -155,9 +155,7 @@ def main():
             df_grouped["term"] = df_grouped["term"].apply(
                 lambda x: "; ".join(map(str, x))
             )
-            output_filename = (
-                f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv"
-            )
+            output_filename = f"./data/swissprot/{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv"
             df_grouped.to_csv(output_filename, sep="\t", index=False)
             print(f"Saved {output_filename}")
 

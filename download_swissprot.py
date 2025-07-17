@@ -209,6 +209,11 @@ def main():
     SeqIO.write(records, fasta_file, "fasta")
     print(f"Wrote {len(records)} records to {fasta_file}")
 
+    # Move fasta and tsv files to data/swissprot/db<db_version>
+    os.makedirs(f"data/swissprot/{db_version}", exist_ok=True)
+    shutil.move(tsv_file, f"data/swissprot/{db_version}/")
+    shutil.move(fasta_file, f"data/swissprot/{db_version}/")
+
 
 if __name__ == "__main__":
     main()
