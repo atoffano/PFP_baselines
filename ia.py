@@ -155,17 +155,16 @@ def parse_inputs(argv):
     parser.add_argument("--annot", "-a", required=True, help="Path to annotation file")
 
     parser.add_argument(
-        "--graph",
-        "-g",
-        default=None,
-        help="Path to OBO ontology graph file if local. If empty (default) current OBO structure at run-time will be downloaded from http://purl.obolibrary.org/obo/go/go-basic.obo",
-    )
-
-    parser.add_argument(
-        "--outfile",
+        "--dataset",
         "-o",
-        default="IA.txt",
-        help="Path to save computed IA for each term in the GO. If empty, will be saved to ./IA.txt",
+        default=None,
+        help="Dataset name used to load test proteins. If empty (default), the script will not filter out test proteins",
+    )
+    parser.add_argument(
+        "--ontology",
+        "-go",
+        default=None,
+        help="Path to OBO ontology graph file, if local. If empty (default) current OBO structure at run-time will be downloaded from http://purl.obolibrary.org/obo/go/go-basic.obo",
     )
 
     parser.add_argument(
@@ -193,39 +192,33 @@ if __name__ == "__main__":
     # Otherwise, this may result in negative IA values.
     annotation_df = pd.read_csv(args.annot, sep="\t")
     annotation_df = annotation_df[["EntryID", "term"]]
-    # Rename col EntryID to protein
-    annotation_df = annotation_df.rename(columns={"EntryID": "protein"})
 
-    # Load mapping
-    id_mapping = pd.read_csv(
-        f"./2024_01/swissprot_2024_01_annotations.tsv",  # Most up to date mapping
-        sep="\t",
-        usecols=["EntryID", "Entry Name"],
-    )
-    id_mapping = id_mapping.set_index("Entry Name").to_dict()["EntryID"]
-    # Map EntryID to protein
-    annotation_df["protein"] = annotation_df["protein"].map(id_mapping)
+    # Data loading
+    if args.aspect:
+        test_df = pd.read_csv(
+            f"./data/{args.dataset}/{args.dataset}_{args.aspect}_test_annotations.tsv",
+            sep="\t",
+            header=None,
+            names=["EntryID", "term"],
+        )
 
-    # Load test proteins
-    test_df = pd.read_csv(
-        "/home/atoffano/PFP_baselines/H30_test_annotations/H30_MFO_test.tsv",
-        sep="\t",
-        header=None,
-        names=["EntryID", "term"],
-    )
+    if args.dataset:
+        # Remove test proteins from IC computation
+        annotation_df = annotation_df[
+            ~annotation_df["EntryID"].isin(test_df["EntryID"])
+        ]
 
-    # Remove test proteins
-    annotation_df = annotation_df[~annotation_df["protein"].isin(test_df["EntryID"])]
-
-    # Select col 'EntryID', 'GO' and 'aspect'
-    obo_file_path = "/home/atoffano/PFP_baselines/go.obo"
+    # Ontology Loading
+    if args.ontology:
+        ontology_path = args.ontology
+    else:
+        ontology_path = "http://purl.obolibrary.org/obo/go/go.obo"
     ontology_graph = clean_ontology_edges(
         obonet.read_obo(
-            obo_file_path,
-            ignore_obsolete=True,
+            ontology_path,
+            ignore_obsolete=False,
         )
     )
-
     roots = {"BPO": "GO:0008150", "CCO": "GO:0005575", "MFO": "GO:0003674"}
     subontologies = {
         aspect: fetch_aspect(ontology_graph, roots[aspect]) for aspect in roots
@@ -236,22 +229,19 @@ if __name__ == "__main__":
         "MFO": list(subontologies["MFO"].nodes),
     }
     obsolete, old_to_new = obsolete_terms(ontology_graph)
+
     # Reverse aspect dictionary
     aspect = {go: aspect for aspect, go_list in aspect.items() for go in go_list}
     annotation_df = annotation_df.dropna(subset=["term"])
-    # annotation_df = annotation_df[annotation_df["GO"].apply(lambda x: x != "[]")]
-    # Split by ;
+
     annotation_df["term"] = annotation_df["term"].apply(lambda x: x.split("; "))
     annotation_df = annotation_df[annotation_df["term"].notna()]
-    print(annotation_df.head())
-    # annotation_df["term"] = annotation_df["term"].apply(eval)
-    annotation_df = annotation_df[["protein", "term"]].explode("term")
-    annotation_df["term"] = annotation_df["term"].map(lambda x: old_to_new.get(x, x))
-    annotation_df[~annotation_df["term"].isin(obsolete)]
+    annotation_df = annotation_df[["EntryID", "term"]].explode("term")
+    # annotation_df["term"] = annotation_df["term"].map(lambda x: old_to_new.get(x, x))
+    # annotation_df = annotation_df[~annotation_df["term"].isin(obsolete)]
+    # Remove
     annotation_df["aspect"] = annotation_df["term"].map(aspect)
     annotation_df = annotation_df.dropna(subset=["aspect"])
-    # Rename go to term
-    annotation_df = annotation_df.rename(columns={"protein": "EntryID"})
 
     print(annotation_df.head())
 
@@ -312,10 +302,20 @@ if __name__ == "__main__":
     if not negative_ia_terms.empty:
         print("The following terms have negative IA values:")
         print(negative_ia_terms)
+        print(
+            "This usually happens when there is a mismatch between ontology versions used for propagation and IA computation."
+        )
     # all counts should be non-negative
     assert ia_df["ic"].min() >= 0
 
     # Save to file
+    if args.aspect:
+        args.outfile = f"./data/{args.dataset}/IC_{args.dataset}_{args.aspect}.tsv"
+    else:
+        args.outfile = f"./data/{args.dataset}/IC_{args.dataset}.tsv"
     print(f"Saving to file {args.outfile}")
-
     ia_df[["term", "ic"]].to_csv(args.outfile, header=None, sep="\t", index=False)
+
+# Example usage:
+# python ia.py --annot ./data/SwissProt_H30_test_annotations.tsv --dataset SwissProt_H30 --ontology ./data/go.obo --prop --aspect BPO
+# python ia

@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import pickle
 
 
 def load_uniprot_mapping():
@@ -62,27 +63,28 @@ def load_pairwise_alignment(alignment_dir, id_mapping=None):
     return pairwise_alignment
 
 
-def load_swissprot(
+def load_data(
     dataset,
     aspect,
     db_version,
     id_mapping=None,
 ):
 
-    train = pd.read_csv(
-        f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
-        sep="\t",
-    )
-
-    # Uncomment to constrain the proteins from the full SwissProt to the original BeProf train proteins
-    # train = pd.read_csv(
-    #     f"./BeProf_D1/D1_{aspect}.tsv",
-    #     sep="\t",
-    # )
+    if db_version is None:
+        # Load constrained dataset
+        train = pd.read_csv(
+            f"./data/swissprot/{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
+            sep="\t",
+        )
+    else:
+        train = pd.read_csv(
+            f"./data/{dataset}_train_annotations/{dataset}_{aspect}_train_annotations.tsv",
+            sep="\t",
+        )
 
     # Proteins to annotate
     test = pd.read_csv(
-        f"./{dataset}_test_annotations/{dataset}_{aspect}_test.tsv",
+        f"./data/{dataset}_test_annotations/{dataset}_{aspect}_test_annotations.tsv",
         sep="\t",
     )
     test = test[["EntryID"]]
@@ -100,31 +102,31 @@ def load_swissprot(
     return train, test
 
 
-def load_atgo(
-    aspect,
-    db_version,
-):
-    """
-    Load ATGO dataset and return train and test DataFrames.
-    """
-    base_dir = "./atgo/expanse/lustre/projects/mia174/yi930505/DeepTransformer/CAFA3/CAFA3/Benchmark_Dataset/Ours"
+# def load_atgo(
+#     aspect,
+#     db_version,
+# ):
+#     """
+#     Load ATGO dataset and return train and test DataFrames.
+#     """
+#     base_dir = "./atgo/expanse/lustre/projects/mia174/yi930505/DeepTransformer/CAFA3/CAFA3/Benchmark_Dataset/Ours"
 
-    # train = pd.read_csv(
-    #     f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
-    #     sep="\t",
-    # )
-    # train["term"] = train["term"].str.split("; ")
+#     # train = pd.read_csv(
+#     #     f"./{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv",
+#     #     sep="\t",
+#     # )
+#     # train["term"] = train["term"].str.split("; ")
 
-    # Uncomment to constrain the proteins from the full SwissProt to the original ATGO train proteins
-    train = os.path.join(base_dir, aspect[:2], "train_protein_label")
-    train = pd.read_csv(train, sep="  ", names=["EntryID", "term"])
-    train["term"] = train["term"].str.split(",")
+#     # Uncomment to constrain the proteins from the full SwissProt to the original ATGO train proteins
+#     train = os.path.join(base_dir, aspect[:2], "train_protein_label")
+#     train = pd.read_csv(train, sep="  ", names=["EntryID", "term"])
+#     train["term"] = train["term"].str.split(",")
 
-    test = os.path.join(base_dir, aspect[:2], "test_protein_label")
-    test = pd.read_csv(test, sep="  ", header=None, names=["EntryID", "term"])
-    test = test[["EntryID"]]  # Avoid leakage
+#     test = os.path.join(base_dir, aspect[:2], "test_protein_label")
+#     test = pd.read_csv(test, sep="  ", header=None, names=["EntryID", "term"])
+#     test = test[["EntryID"]]  # Avoid leakage
 
-    train = train.dropna().explode("term").drop_duplicates()
-    train = train[~train["EntryID"].isin(test["EntryID"].unique())]  # Avoid leakage
+#     train = train.dropna().explode("term").drop_duplicates()
+#     train = train[~train["EntryID"].isin(test["EntryID"].unique())]  # Avoid leakage
 
-    return train, test
+#     return train, test

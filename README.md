@@ -48,7 +48,6 @@ Download all necessary information (e.g., protein sequences, GO annotations) fro
 python download_swissprot.py
 ```
 
-
 ### 2. Propagation
 Propagate GO annotations using the ontology structure:
 
@@ -75,7 +74,7 @@ Note that as the 2024 release of SwissProt contains >500,000 proteins, the all-v
 ```sh
 python main.py \
 --dataset D1 \
---output_dir ./atgo/baselines_unconstrained \
+--output_dir ./results/ATGO/baselines_unconstrained \
 --alignment_dir ./2024_01/diamond_swissprot_2024_01_alignment.tsv \
 --k_values 1 3 5 10 15 20 \
 --aspects BPO CCO MFO \
@@ -87,27 +86,11 @@ To greatly speed up the process, you can skip the Naive baseline by uncommenting
 
 ### 5. Preparing the evaluation
 Evaluate the baseline predictions using the BeProf evaluation script.
-This step first requires the conversion of the ground truth targets (actual test annotations) to the format required by the BeProf evaluation script and the generation of the background file (which allows to compute weighted scores).
-Those can be done with the following commands:
-
-#### Convert the test annotations to the .pkl format required by the BeProf evaluation script:
-```sh
-# BeProf D1 dataset
-python convert_test_annot.py --input ./D1_test_annotations/D1_BPO_test.tsv ./D1_test_annotations/D1_CCO_test.tsv ./D1_test_annotations/D1_MFO_test.tsv
-
-# Low homology dataset
-python convert_test_annot.py --input ./H30_test_annotations/H30_BPO_test.tsv ./H30_test_annotations/H30_CCO_test.tsv ./H30_test_annotations/H30_MFO_test.tsv
-```
-Files will be stored in the same directory as the input files.
-
-#### Generate the background file
+First, background file needs to be generated. 
 The background file is used to compute the term's Information Content (IC) to obtain weighted scores. It contains the distribution of GO terms in the dataset used to transfer annotations.
+Example for the ATGO dataset:
 ```sh
-# BeProf D1 dataset
-python background.py --cco ./BeProf_D1/D1_CCO.tsv --bpo ./BeProf_D1/D1_BPO.tsv --mfo ./BeProf_D1/D1_MFO.tsv --output ./background/background_D1.pkl --test_cco ./D1_test_annotations/D1_BPO_test.tsv --test_bpo ./D1_test_annotations/D1_BPO_test.tsv --test_mfo ./D1_test_annotations/D1_MFO_test.tsv
-
-# Low homology dataset
-python background.py --cco ./2024_01/swissprot_2024_01_CCO_annotations.tsv --bpo ./2024_01/swissprot_2024_01_BPO_annotations.tsv --mfo ./2024_01/swissprot_2024_01_MFO_annotations.tsv --test_cco ./H30_test_annotations/H30_BPO_test.tsv --test_bpo ./H30_test_annotations/H30_BPO_test.tsv --test_mfo ./H30_test_annotations/H30_MFO_test.tsv --output ./background/background_2024_01.pkl
+python background.py --cco ./data/ATGO/ATGO_CCO_train_annotations.tsv --bpo ./data/ATGO/ATGO_BPO_train_annotations.tsv --mfo ./data/ATGO/ATGO_MFO_train_annotations.tsv --output ./data/ATGO/background_ATGO.pkl --test_cco ./data/ATGO/ATGO_MFO_test_annotations.tsv --test_bpo ./data/ATGO/ATGO_BPO_test_annotations.tsv --test_mfo ./data/ATGO/ATGO_CCO_test_annotations.tsv
 ```
 
 ### 6. Evaluation

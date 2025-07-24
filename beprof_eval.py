@@ -1,22 +1,14 @@
 import warnings
 import numpy as np
 import scipy.sparse as ssp
-
-# from sklearn.metrics import average_precision_score as aupr
 import math
 import pandas as pd
 from collections import OrderedDict, deque, Counter
 import math
-import re
 import pickle as pkl
 import os
-import sys
 import argparse
-import ast
 import tqdm
-
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 
 
 def parse_args():
@@ -421,11 +413,11 @@ class Ontology(object):
         return term_set
 
 
-def new_compute_performance(test_df, go, ont, output_path):
+def compute_performance(test_df, go, ont, output_path):
 
     go_set = go.get_namespace_terms(NAMESPACES[ont])
     go_set.remove(FUNC_DICT[ont])
-    # print(len(go_set))
+    print(len(go_set))
 
     labels = list(go_set)
     goid_idx = {}
@@ -439,29 +431,39 @@ def new_compute_performance(test_df, go, ont, output_path):
     # Annotations
     for i, row in enumerate(test_df.itertuples()):
         # true
-        vals = [0] * len(labels)
+        true_vals = [0] * len(labels)
         annots = set()
         for go_id in row.gos:
             if go.has_term(go_id):
                 annots |= go.get_anchestors(go_id)
         for go_id in annots:
             if go_id in go_set:
-                vals[goid_idx[go_id]] = 1
-        true_scores.append(vals)
+                true_vals[goid_idx[go_id]] = 1
 
         # pred
-        vals = [-1] * len(labels)
+        pred_vals = [-1] * len(labels)
         for items, score in row.predictions.items():
             if items in go_set:
-                vals[goid_idx[items]] = max(score, vals[goid_idx[items]])
+                pred_vals[goid_idx[items]] = max(score, pred_vals[goid_idx[items]])
             go_parent = go.get_anchestors(items)
             for go_id in go_parent:
                 if go_id in go_set:
-                    vals[goid_idx[go_id]] = max(vals[goid_idx[go_id]], score)
-        pred_scores.append(vals)
+                    pred_vals[goid_idx[go_id]] = max(pred_vals[goid_idx[go_id]], score)
+
+        # Only keep proteins with at least one valid annotation
+        if sum(true_vals) > 0:
+            true_scores.append(true_vals)
+            pred_scores.append(pred_vals)
+        else:
+            print(
+                f"Skipping protein {row.protein_id}: no valid annotations in ontology."
+            )
+
     pred_scores = np.array(pred_scores)
     true_scores = np.array(true_scores)
-    # print(pred_scores.shape, true_scores.shape, sum(pred_scores<0), sum(pred_scores>0))
+    # print(
+    #     pred_scores.shape, true_scores.shape, sum(pred_scores < 0), sum(pred_scores > 0)
+    # )
 
     (
         result_fmax,
@@ -478,6 +480,7 @@ def new_compute_performance(test_df, go, ont, output_path):
         goic_vector,
         godp_vector,
     ) = fmax(go, true_scores, pred_scores, idx_goid)
+
     precisions = np.array(precisions)
     recalls = np.array(recalls)
     sorted_index = np.argsort(recalls)
@@ -520,10 +523,11 @@ def new_compute_performance(test_df, go, ont, output_path):
         "result_t": result_t,
     }
     save_pkl(
-        "{0}/eval_beprof_evaluation_results_detailed.pkl".format(output_path),
+        "{0}/beprof_eval_results.pkl".format(output_path),
         save_dict,
     )
-    return result_fmax, result_smin, result_aupr, result_icaupr, result_dpaupr, result_t
+    print(f"Saved detailed evaluation results to {output_path}/beprof_eval_results.pkl")
+    # return result_fmax, result_smin, result_aupr, result_icaupr, result_dpaupr, result_t
 
 
 def generate_result(
@@ -536,7 +540,6 @@ def generate_result(
 ):
     all_files = {}
     all_files["Your_method"] = input_file
-
     go = Ontology(go_file, with_rels=True)
 
     all_annotations = []
@@ -599,42 +602,43 @@ def generate_result(
                 save_dict["predictions"].append(method_predict_result[protein][tag])
 
             df = pd.DataFrame(save_dict)
+            compute_performance(df, go, tag, output_path)
 
-            F_max, Smin, Aupr, ICAupr, DPAupr, threadhold = new_compute_performance(
-                df, go, tag, output_path
-            )
+    #         F_max, Smin, Aupr, ICAupr, DPAupr, threadhold = compute_performance(
+    #             df, go, tag, output_path
+    #         )
 
-            if "F_max" in metric_list:
-                all_results["{0}_{1}".format("F_max", num)].append(round(F_max, 5))
-            if "Smin" in metric_list:
-                all_results["{0}_{1}".format("Smin", num)].append(round(Smin, 5))
-            if "Aupr" in metric_list:
-                all_results["{0}_{1}".format("Aupr", num)].append(round(Aupr, 5))
-            if "ICAupr" in metric_list:
-                all_results["{0}_{1}".format("ICAupr", num)].append(round(ICAupr, 5))
-            if "DPAupr" in metric_list:
-                all_results["{0}_{1}".format("DPAupr", num)].append(round(DPAupr, 5))
+    #         if "F_max" in metric_list:
+    #             all_results["{0}_{1}".format("F_max", num)].append(round(F_max, 5))
+    #         if "Smin" in metric_list:
+    #             all_results["{0}_{1}".format("Smin", num)].append(round(Smin, 5))
+    #         if "Aupr" in metric_list:
+    #             all_results["{0}_{1}".format("Aupr", num)].append(round(Aupr, 5))
+    #         if "ICAupr" in metric_list:
+    #             all_results["{0}_{1}".format("ICAupr", num)].append(round(ICAupr, 5))
+    #         if "DPAupr" in metric_list:
+    #             all_results["{0}_{1}".format("DPAupr", num)].append(round(DPAupr, 5))
 
-            print(
-                "Have done",
-                method,
-                tag,
-                "F_max:",
-                F_max,
-                "Smin:",
-                Smin,
-                "Aupr:",
-                Aupr,
-                "ICAupr:",
-                ICAupr,
-                "DPAupr:",
-                DPAupr,
-                "threadhold:",
-                threadhold,
-            )
+    #         print(
+    #             "Have done",
+    #             method,
+    #             tag,
+    #             "F_max:",
+    #             F_max,
+    #             "Smin:",
+    #             Smin,
+    #             "Aupr:",
+    #             Aupr,
+    #             "ICAupr:",
+    #             ICAupr,
+    #             "DPAupr:",
+    #             DPAupr,
+    #             "threadhold:",
+    #             threadhold,
+    #         )
 
-    df = pd.DataFrame(all_results)
-    df.to_csv("{0}/eval_beprof_test_evaluation_results.csv".format(output_path))
+    # df = pd.DataFrame(all_results)
+    # df.to_csv("{0}/eval_beprof_test_evaluation_results.csv".format(output_path))
 
 
 def main(
@@ -649,7 +653,7 @@ def main(
         test_data = pkl.load(f)
     with open(all_protein_information_file, "rb") as f:
         all_protein_information = pkl.load(f)
-
+    print("Test data and all protein information loaded.")
     generate_result(
         input_file, output_path, go_file, test_data, all_protein_information, metrics
     )

@@ -92,4 +92,5 @@ if __name__ == "__main__":
     main()
 
 # Example usage:
-# python background.py --cco ./2024_01/swissprot_2024_01_CCO_annotations.tsv --bpo ./2024_01/swissprot_2024_01_BPO_annotations.tsv --mfo ./2024_01/swissprot_2024_01_MFO_annotations.tsv --output ./background/background_D1_2024_01.pkl --test_cco ./D1_test_annotations/BPO_test.tsv --test_bpo ./D1_test_annotations/BPO_test.tsv --test_mfo ./D1_test_annotations/MFO_test.tsv
+# python background.py --cco ./data/swissprot/2024_01/swissprot_2024_01_CCO_annotations.tsv --bpo ./data/swissprot/2024_01/swissprot_2024_01_BPO_annotations.tsv --mfo ./data/swissprot/2024_01/swissprot_2024_01_MFO_annotations.tsv --output ./data/H30/background_H30_2024_01.pkl --test_cco ./data/H30/H30_test_annotations/H30_CCO_test_annotations.tsv --test_bpo ./data/H30/H30_test_annotations/H30_BPO_test_annotations.tsv --test_mfo ./data/H30/H30_test_annotations/H30_MFO_test_annotations.tsv
+# python background.py --cco ./data/ATGO/ATGO_CCO_train_annotations.tsv --bpo ./data/ATGO/ATGO_BPO_train_annotations.tsv --mfo ./data/ATGO/ATGO_MFO_train_annotations.tsv --output ./data/ATGO/background_ATGO.pkl --test_cco ./data/ATGO/ATGO_MFO_test_annotations.tsv --test_bpo ./data/ATGO/ATGO_BPO_test_annotations.tsv --test_mfo ./data/ATGO/ATGO_CCO_test_annotations.tsv

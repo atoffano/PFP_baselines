@@ -5,6 +5,7 @@ import argparse
 import logging
 from dataloading import *
 import methods
+import evaluation
 
 DB_VERSIONS = [
     "2024_01",
@@ -61,14 +62,6 @@ def main():
     )
     parser.add_argument("--dataset", type=str, required=True, help="Dataset name.")
     parser.add_argument(
-        "--output_dir",
-        type=str,
-        required=True,
-        default="./results/baselines_constrained",
-        help="Output directory for results.",
-    )
-
-    parser.add_argument(
         "--alignment_dir",
         type=str,
         required=True,
@@ -80,9 +73,6 @@ def main():
         nargs="+",
         default=[1, 3, 5, 10, 15, 20],
         help="List of k closest sequences to transfer annotations from.",
-    )
-    parser.add_argument(
-        "--id_mapping", action="store_true", help="Use Uniprot ID mapping."
     )
     parser.add_argument(
         "--db_versions",
@@ -98,6 +88,10 @@ def main():
         default=["BPO", "CCO", "MFO"],
         help="Ontology aspects to process.",
     )
+    parser.add_argument(
+        "--id_mapping", action="store_true", help="Use Uniprot ID mapping."
+    )
+
     args = parser.parse_args()
 
     if args.id_mapping:
@@ -108,7 +102,7 @@ def main():
 
     for db_version in tqdm.tqdm(args.db_versions, desc="Processing databases"):
         for aspect in args.aspects:
-            output_dir = f"{args.output_dir}_{args.dataset}_{db_version}_{aspect}"
+            output_dir = f"./results/{args.dataset}/baselines_{args.dataset}_{db_version}_{aspect}"
             os.makedirs(output_dir, exist_ok=True)
             os.makedirs(f"{output_dir}/predictions", exist_ok=True)
             os.makedirs(f"{output_dir}/predictions/AlignmentScore", exist_ok=True)
@@ -123,22 +117,12 @@ def main():
 
             # Load data
             logger.info(f"Loading data for {args.dataset} with aspect {aspect}")
-            match args.dataset:
-                case "D1" | "H30":
-                    train, test = load_swissprot(
-                        args.dataset,
-                        aspect,
-                        db_version,
-                        id_mapping=id_mapping,
-                    )
-                case "ATGO":
-                    train, test = load_atgo(
-                        aspect,
-                        db_version,
-                    )
-                case _:
-                    raise ValueError(f"Unknown dataset: {args.dataset}")
-
+            train, test = load_data(
+                args.dataset,
+                aspect,
+                db_version,
+                id_mapping=id_mapping,
+            )
             logger.info(
                 f"Loaded {train['EntryID'].nunique()} training proteins and {test['EntryID'].nunique()} test proteins"
             )
@@ -200,6 +184,13 @@ def main():
 
             logger.info(f"All predictions saved to {output_dir}/predictions")
             logger.info(f"Completed processing for {aspect}")
+
+            logger.info("Evaluating predictions...")
+
+            evaluation.evaluate(
+                logger, output_dir, args.dataset, aspect, k_values=args.k_values
+            )
+            logger.info(f"Evaluation completed for aspect {aspect}")
 
         print("Done!")
 
