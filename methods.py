@@ -81,7 +81,9 @@ def naive_baseline(input_dir, train, val):
     )
 
 
-def transfer_annotations(logger, pairwise_alignment, train, test, k_values):
+def transfer_annotations(
+    logger, pairwise_alignment, train, test, k_values, one_vs_all=False
+):
     # Annotations for each sequence in the known protein set (used to transfer annotations)
     # Ts: A dictionary of annotations like {'protein_name': ['go_term1', 'go_term2', ...], ...}
     Ts = train.groupby("EntryID")["term"].apply(list).to_dict()
@@ -92,11 +94,11 @@ def transfer_annotations(logger, pairwise_alignment, train, test, k_values):
             lambda x: len(x) if isinstance(x, list) else 0
         )
         > 0
-    ]  # Drop rows without annotations (ie. val set proteins)
+    ]  # Drop rows without annotations
 
     grouped = pairwise_alignment.groupby(
         "query_id"
-    )  # Group by validation protein for faster processing
+    )  # Group by test protein for faster processing
 
     ascore_pred = []
     blastknn_preds_dict = {k: [] for k in k_values}
@@ -112,9 +114,10 @@ def transfer_annotations(logger, pairwise_alignment, train, test, k_values):
             unaligned_proteins += 1
             unaligned_protein_ids.append(protein)
             continue
-        assert (
-            not group["subject_id"].isin(test["EntryID"].unique()).any()
-        ), "Annotation leakage has been found beetween validation proteins !"
+        if not one_vs_all:
+            assert (
+                not group["subject_id"].isin(test["EntryID"].unique()).any()
+            ), "Annotation leakage has been found beetween protein sets !"
 
         ascore_preds = alignment_score(group)  # Compute from all alignments
         for k in k_values:  # Compute from k closest alignments

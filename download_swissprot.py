@@ -8,32 +8,14 @@ import shutil
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+import argparse
+import sys
+import os
 
+sys.path.append(os.path.abspath(".."))
+from constants import *
 
 BASE_PATH = "."
-DB_VERSIONS = [
-    "2024_01",
-    "2023_01",
-    "2022_01",
-    "2021_01",
-    "2020_01",
-    "2019_01",
-    "2018_01",
-    "2017_01",
-    "2016_01",
-    "2015_01",
-    "2014_01",
-    "2013_01",
-    "2012_01",
-    "2011_01",
-    "2010_01",
-    "15.0",
-    "13.0",
-    "10.0",
-    "7.0",
-    "4.0",
-    "1.0",
-]
 
 
 def dl_swissprot(file, url, db_version):
@@ -86,7 +68,11 @@ def dl_swissprot(file, url, db_version):
                 os.remove(os.path.join(root, fname))
 
 
-def parse_uniprot_dat(filepath):
+def parse_uniprot_dat(db_version, experimental_only=False):
+    filepath = os.path.join("swissprot", db_version, "uniprot_sprot.dat")
+    if not os.path.isfile(filepath):
+        print(f"File not found: {filepath}")
+        return
     results = []
     print(f"Parsing {filepath} entries...")
     with open(filepath, "r") as f:
@@ -99,6 +85,7 @@ def parse_uniprot_dat(filepath):
                 entry.append(line.rstrip())
     parsed = []
     print(f"Parsed {len(results)} entries.")
+    exp_codes = {"EXP", "IDA", "IPI", "IMP", "IGI", "IEP", "TAS", "IC"}
     for entry in tqdm.tqdm(results, desc="Parsing entries content", unit="entry"):
         uniprot_id = None
         go_terms = []
@@ -111,10 +98,21 @@ def parse_uniprot_dat(filepath):
             elif line.startswith("AC "):
                 entryid = line.split()[1].strip(";")
             elif line.startswith("DR   GO;"):
-                # example line: DR   GO; GO:0046782; P:regulation of viral transcription; IEA:InterPro.
-                m = re.match(r"DR\s+GO;\s*(GO:\d+);", line)
-                if m:
-                    go_terms.append(m.group(1))
+                # Check for experimental evidence codes if requested
+                if experimental_only:
+                    match db_version:
+                        case "7.0" | "4.0" | "1.0":
+                            # Example : DR   GO; GO:0006270; P:DNA replication initiation; TAS.
+                            m = re.match(r"DR\s+GO;\s+(GO:\d+);.*;\s+([A-Z]+)\.", line)
+                        case _:
+                            # DR   GO; GO:0005975; P:carbohydrate metabolic process; TAS:ProtInc.
+                            m = re.match(r"DR\s+GO;\s*(GO:\d+);.*;\s*([A-Z]+):", line)
+                    if m and m.group(2) in exp_codes:
+                        go_terms.append(m.group(1))
+                else:
+                    m = re.match(r"DR\s+GO;\s*(GO:\d+);", line)
+                    if m:
+                        go_terms.append(m.group(1))
             elif line.startswith("SQ "):
                 in_seq = True
                 continue
@@ -127,50 +125,28 @@ def parse_uniprot_dat(filepath):
     return parsed
 
 
-def main():
-    # Download SwissProt releases
-    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Downloading SwissProt releases"):
-        if "_" in db_version:
-            # Download recent SwissProt releases - from 2024 to 2010
-            rel = f"release-{db_version}"
-            file = f"uniprot_sprot-only{db_version}.tar.gz"
-            url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/{rel}/knowledgebase/{file}"
-            dl_swissprot(file, url, db_version)
-            print(f"Downloaded and extracted SwissProt {db_version} annotations.")
-        else:
-            # Download older SwissProt releases - from 2009 to 2003
-            file = f"uniprot_sprot-only{db_version}.tar.gz"
-            url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release{rel}/knowledgebase/{file}"
-            dl_swissprot(file, url, db_version)
-            print(f"Downloaded and extracted SwissProt {db_version} annotations.")
-
-    # Parse all SwissProt releases and save annotations to TSV files
-    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Parsing SwissProt releases"):
-        year_folder = os.path.join(BASE_PATH, db_version)
-        dat_file = os.path.join(year_folder, "uniprot_sprot.dat")
-        output_file = os.path.join(
-            year_folder, f"swissprot_{db_version}_annotations.tsv"
-        )
-        if not os.path.isfile(dat_file):
-            print(f"File not found: {dat_file}")
-            continue
-        entries = parse_uniprot_dat(dat_file)
-        with open(output_file, "w") as out:
-            out.write("EntryID\tEntry Name\tterm\tSequence\n")
-            for uniprot_id, entryid, go_terms, sequence in entries:
-                out.write(f"{uniprot_id}\t{entryid}\t{go_terms}\t{sequence}\n")
-        print(f"Wrote {output_file}")
-
+def filter_release(experimental_only=False):
     # Removes entries from all SwissProt releases that are not present in the latest release (2024_01)
     # This is mainly to avoid leakage from proteins that could have been renamed from one version to another.
-    ref_file = os.path.join(BASE_PATH, "2024_01/swissprot_2024_01_annotations.tsv")
+    ref_file = os.path.join(
+        BASE_PATH, "swissprot/2024_01/swissprot_2024_01_annotations.tsv"
+    )
     with open(ref_file) as f:
         ref_ids = set(line.split("\t")[1] for i, line in enumerate(f) if i > 0)
 
     for db_version in tqdm.tqdm(DB_VERSIONS, desc="Filtering SwissProt releases"):
-        tsv_file = os.path.join(
-            BASE_PATH, f"{db_version}", f"swissprot_{db_version}_annotations.tsv"
-        )
+        if experimental_only:
+            tsv_file = os.path.join(
+                BASE_PATH,
+                f"swissprot/{db_version}",
+                f"swissprot_{db_version}_exp_annotations.tsv",
+            )
+        else:
+            tsv_file = os.path.join(
+                BASE_PATH,
+                f"swissprot/{db_version}",
+                f"swissprot_{db_version}_annotations.tsv",
+            )
         if not os.path.isfile(tsv_file):
             continue
         # Read all lines
@@ -189,10 +165,58 @@ def main():
             f"Filtered {tsv_file}: {len(filtered_lines)-1} entries kept among {len(lines)-1} original entries."
         )
 
+
+def main(experimental_only=True):
+    print("Experimental only mode enabled.")
+    # # Download SwissProt releases
+    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Downloading SwissProt releases"):
+        if "_" in db_version:
+            # Download recent SwissProt releases - from 2024 to 2010
+            rel = f"release-{db_version}"
+            file = f"uniprot_sprot-only{db_version}.tar.gz"
+            url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/{rel}/knowledgebase/{file}"
+            dl_swissprot(file, url, db_version)
+            print(f"Downloaded and extracted SwissProt {db_version} annotations.")
+        else:
+            # Download older SwissProt releases - from 2009 to 2003
+            file = f"uniprot_sprot-only{db_version}.tar.gz"
+            url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release{rel}/knowledgebase/{file}"
+            dl_swissprot(file, url, db_version)
+            print(f"Downloaded and extracted SwissProt {db_version} annotations.")
+
+    # Parse all SwissProt releases and save annotations to TSV files
+    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Parsing SwissProt releases"):
+        year_folder = os.path.join(BASE_PATH, "swissprot", db_version)
+
+        entries = parse_uniprot_dat(dat_file)
+        output_file = os.path.join(
+            year_folder, f"swissprot_{db_version}_annotations.tsv"
+        )
+        with open(output_file, "w") as out:
+            out.write("EntryID\tEntry Name\tterm\tSequence\n")
+            for uniprot_id, entryid, go_terms, sequence in entries:
+                out.write(f"{uniprot_id}\t{entryid}\t{go_terms}\t{sequence}\n")
+        print(f"Wrote {output_file}")
+
+        entries = parse_uniprot_dat(db_version, experimental_only)
+        output_file = os.path.join(
+            year_folder, f"swissprot_{db_version}_exp_annotations.tsv"
+        )
+        with open(output_file, "w") as out:
+            out.write("EntryID\tEntry Name\tterm\tSequence\n")
+            for uniprot_id, entryid, go_terms, sequence in entries:
+                out.write(f"{uniprot_id}\t{entryid}\t{go_terms}\t{sequence}\n")
+        print(f"Wrote {output_file}")
+
+    print("Filtering SwissProt releases to keep only entries present in 2024_01...")
+    filter_release(experimental_only)
+
     # Create a fasta file with all sequences from the latest SwissProt release (2024_01)
     # This will be used to align all proteins against each other.
-    tsv_file = os.path.join(BASE_PATH, f"2024_01/swissprot_2024_01_annotations.tsv")
-    fasta_file = os.path.join(BASE_PATH, f"2024_01/swissprot_2024_01.fasta")
+    tsv_file = os.path.join(
+        BASE_PATH, f"swissprot/2024_01/swissprot_2024_01_annotations.tsv"
+    )
+    fasta_file = os.path.join(BASE_PATH, f"swissprot/2024_01/swissprot_2024_01.fasta")
     if not os.path.isfile(tsv_file):
         print(f"TSV not found: {tsv_file}")
     # Read TSV and write FASTA
@@ -209,12 +233,21 @@ def main():
     SeqIO.write(records, fasta_file, "fasta")
     print(f"Wrote {len(records)} records to {fasta_file}")
 
-    # Move fasta and tsv files to data/swissprot/db<db_version>
-    os.makedirs(f"data/swissprot/{db_version}", exist_ok=True)
-    shutil.move(tsv_file, f"data/swissprot/{db_version}/")
-    shutil.move(fasta_file, f"data/swissprot/{db_version}/")
+    # Move fasta and tsv files to swissprot/db<db_version>
+    os.makedirs(f"swissprot/{db_version}", exist_ok=True)
+    shutil.move(fasta_file, f"swissprot/{db_version}/")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Your script description")
+    parser.add_argument(
+        "--experimental_only",
+        action="store_true",
+        help="Run experimental features only",
+    )
+    args = parser.parse_args()
+
+    if args.experimental_only:
+        print("Experimental only mode enabled.")
+    main(args.experimental_only)
     print("SwissProt download and parsing completed successfully!")

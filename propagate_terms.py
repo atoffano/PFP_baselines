@@ -1,28 +1,28 @@
-import os
 import obonet
 import networkx as nx
 import tqdm
 import pandas as pd
+import argparse
 
 DB_VERSIONS = [
-    "2024_01",
-    "2023_01",
-    "2022_01",
-    "2021_01",
-    "2020_01",
-    "2019_01",
-    "2018_01",
-    "2017_01",
-    "2016_01",
-    "2015_01",
-    "2014_01",
-    "2013_01",
-    "2012_01",
-    "2011_01",
-    "2010_01",
-    "15.0",
-    "13.0",
-    "10.0",
+    # "2024_01",
+    # "2023_01",
+    # "2022_01",
+    # "2021_01",
+    # "2020_01",
+    # "2019_01",
+    # "2018_01",
+    # "2017_01",
+    # "2016_01",
+    # "2015_01",
+    # "2014_01",
+    # "2013_01",
+    # "2012_01",
+    # "2011_01",
+    # "2010_01",
+    # "15.0",
+    # "13.0",
+    # "10.0",
     "7.0",
     "4.0",
     "1.0",
@@ -108,7 +108,7 @@ def fetch_aspect(ontology, root: str):
     return subont_
 
 
-def main():
+def main(experimental_only=False):
     """
     Main function to propagate GO terms from SwissProt annotations.
     It reads the GO ontology, processes SwissProt releases, and saves propagated annotations.
@@ -128,11 +128,15 @@ def main():
 
     for db_version in tqdm.tqdm(DB_VERSIONS, desc="Processing SwissProt releases"):
         print(f"Propagating terms from version: {db_version}...")
-        tsv_file = f"./{db_version}/swissprot_{db_version}_annotations.tsv"
+        if experimental_only:
+            tsv_file = f"./data/swissprot/{db_version}/swissprot_{db_version}_exp_annotations.tsv"
+        else:
+            tsv_file = (
+                f"./data/swissprot/{db_version}/swissprot_{db_version}_annotations.tsv"
+            )
         # Load df
         swissprot = pd.read_csv(tsv_file, sep="\t")
         swissprot = swissprot[["Entry Name", "term"]]
-        # Rename Entry Name to EntryID
         swissprot = swissprot.rename(columns={"Entry Name": "EntryID"})
         swissprot["term"] = swissprot["term"].str.replace(" ", "").str.split(";")
 
@@ -155,10 +159,22 @@ def main():
             df_grouped["term"] = df_grouped["term"].apply(
                 lambda x: "; ".join(map(str, x))
             )
-            output_filename = f"./data/swissprot/{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv"
+            if experimental_only:
+                output_filename = f"./data/swissprot/{db_version}/swissprot_{db_version}_{aspect}_exp_annotations.tsv"
+            else:
+                output_filename = f"./data/swissprot/{db_version}/swissprot_{db_version}_{aspect}_annotations.tsv"
             df_grouped.to_csv(output_filename, sep="\t", index=False)
             print(f"Saved {output_filename}")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Propagate GO terms from SwissProt annotations."
+    )
+    parser.add_argument(
+        "--experimental_only",
+        action="store_true",
+        help="Use only experimental annotations.",
+    )
+    args = parser.parse_args()
+    main(experimental_only=args.experimental_only)

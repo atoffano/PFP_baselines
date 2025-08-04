@@ -65,7 +65,7 @@ echo "Creating Diamond database..."
 diamond makedb --in data/2024_01/swissprot_2024_01.fasta -d data/2024_01/swissprot_2024_01_proteins_set
 
 echo "Running Diamond blast on protein sequences against themselves..."
-diamond blastp --very-sensitive --db data/swissprot/2024_01/swissprot_2024_01_proteins_set.dmnd --query data/swissprot/2024_01/swissprot_2024_01.fasta --out data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001 --ultra-sensitive
+diamond blastp --very-sensitive --db data/swissprot/2024_01/swissprot_2024_01_proteins_set.dmnd --query data/swissprot/2024_01/swissprot_2024_01.fasta --out data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001
 ```
 This step creates a Diamond database from the SwissProt protein sequences and performs a sequence alignment to find similar proteins. The output will be stored in `data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv`.
 Note that as the 2024 release of SwissProt contains >500,000 proteins, the all-vs-all alignment step can be long (about 1 hour).
@@ -79,6 +79,7 @@ python main.py \
 --k_values 1 3 5 10 15 20 \
 --aspects BPO CCO MFO \
 --db_versions 2024_01
+--id_mapping
 ```
 Run the baseline methods (e.g., Naive, Diamond-KNN, AlignmentScore). If running on all Swissprot versions, this can take a while. Dataset can be set to `D1` (BeProf D1 dataset), `H30` (Low homology dataset) or `ATGO`.
 To greatly speed up the process, you can skip the Naive baseline by uncommenting the corresponding line in the `main.py` script.

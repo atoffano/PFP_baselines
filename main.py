@@ -3,6 +3,7 @@ import os
 import tqdm
 import argparse
 import logging
+from constants import *
 from dataloading import *
 import methods
 import evaluation
@@ -89,25 +90,47 @@ def main():
         help="Ontology aspects to process.",
     )
     parser.add_argument(
-        "--id_mapping", action="store_true", help="Use Uniprot ID mapping."
+        "--one_vs_all",
+        action="store_true",
+        help="Whether to use one-vs-all approach for annotation propagation.",
+    )
+    parser.add_argument(
+        "--annotations_2024_01",
+        action="store_true",
+        help="Whether to fix train proteins' annotations to 2024 SwissProt version.",
+    )
+    parser.add_argument(
+        "--output_suffix",
+        type=str,
+        default="stringdb",
+        help="Appended suffix to the output directory.",
+    )
+    parser.add_argument(
+        "--experimental_only",
+        action="store_true",
+        help="Whether to use only experimental annotations.",
+    )
+
+    parser.add_argument(
+        "--stringdb",
+        action="store_true",
+        help="Use STRING DB instead of pairwise alignments.",
     )
 
     args = parser.parse_args()
 
-    if args.id_mapping:
-        print("Loading Uniprot ID mapping...")
-        id_mapping = load_uniprot_mapping()
-    else:
-        id_mapping = None
+    # Mapping from SwissProt Entry Name (e.g. Q6GZX1) to EntryID (004R_FRG3G)
+    id_mapping = load_uniprot_mapping()
 
     for db_version in tqdm.tqdm(args.db_versions, desc="Processing databases"):
         for aspect in args.aspects:
-            output_dir = f"./results/{args.dataset}/baselines_{args.dataset}_{db_version}_{aspect}"
-            os.makedirs(output_dir, exist_ok=True)
+
+            output_dir = f"./results/{args.dataset}/baselines_{args.dataset}_{db_version}_{aspect}{args.output_suffix}"
+            if args.annotations_2024_01:
+                output_dir += "_2024_annotations"
+            if args.one_vs_all:
+                output_dir += "_one_vs_all"
             os.makedirs(f"{output_dir}/predictions", exist_ok=True)
-            os.makedirs(f"{output_dir}/predictions/AlignmentScore", exist_ok=True)
-            os.makedirs(f"{output_dir}/predictions/NaiveBaseline", exist_ok=True)
-            os.makedirs(f"{output_dir}/predictions/BlastKNN", exist_ok=True)
 
             # Setup logging for this aspect
             logger = setup_logging(output_dir, aspect)
@@ -118,34 +141,50 @@ def main():
             # Load data
             logger.info(f"Loading data for {args.dataset} with aspect {aspect}")
             train, test = load_data(
+                logger,
                 args.dataset,
                 aspect,
                 db_version,
+                annotations_2024_01=args.annotations_2024_01,
                 id_mapping=id_mapping,
+                experimental_only=args.experimental_only,
+                one_vs_all=args.one_vs_all,
             )
             logger.info(
                 f"Loaded {train['EntryID'].nunique()} training proteins and {test['EntryID'].nunique()} test proteins"
             )
+            logger.info(f"One-vs-All approach: {args.one_vs_all}.")
             logger.info(f"Train set:\n{train}")
             logger.info(f"Test set:\n{test}")
 
             # Comment to skip Naive Baseline
-            logger.info("Running Naive Baseline...")
-            methods.naive_baseline(output_dir, train, test)
-            logger.info(f"Naive Baseline predictions saved to {output_dir}/predictions")
+            # logger.info("Running Naive Baseline...")
+            # os.makedirs(f"{output_dir}/predictions/NaiveBaseline", exist_ok=True)
+            # methods.naive_baseline(output_dir, train, test)
+            # logger.info(f"Naive Baseline predictions saved to {output_dir}/predictions")
             # ---
 
             logger.info("Loading pairwise alignments...")
             pairwise_alignment = load_pairwise_alignment(
-                args.alignment_dir, id_mapping=id_mapping
+                args.dataset,
+                id_mapping=id_mapping,
             )
-            pairwise_alignment = pairwise_alignment[
-                pairwise_alignment["query_id"].isin(test["EntryID"].unique())
-                & pairwise_alignment["subject_id"].isin(train["EntryID"].unique())
-            ]
+            if not args.one_vs_all:
+                pairwise_alignment = pairwise_alignment[
+                    pairwise_alignment["query_id"].isin(test["EntryID"].unique())
+                    & pairwise_alignment["subject_id"].isin(train["EntryID"].unique())
+                ]
+            else:
+                # For one-vs-all, test set proteins are allowed to transfer their annotations (just not to self)
+                pairwise_alignment = pairwise_alignment[
+                    pairwise_alignment["query_id"].isin(train["EntryID"].unique())
+                ]
+
             logger.info(f"Loaded {len(pairwise_alignment)} pairwise alignments")
 
             logger.info("Running alignment-based methods...")
+            os.makedirs(f"{output_dir}/predictions/AlignmentScore", exist_ok=True)
+            os.makedirs(f"{output_dir}/predictions/BlastKNN", exist_ok=True)
             unaligned_protein_ids, ascore_pred, blastknn_preds_dict = (
                 methods.transfer_annotations(
                     logger,
@@ -153,10 +192,11 @@ def main():
                     train,
                     test,
                     args.k_values,
+                    one_vs_all=args.one_vs_all,
                 )
             )
 
-            logger.info(f"Found {len(unaligned_protein_ids)} unaligned proteins")
+            logger.info(f"Found {len(unaligned_protein_ids)} unannotated test proteins")
 
             unannotated_path = os.path.join(
                 output_dir,
@@ -199,6 +239,6 @@ if __name__ == "__main__":
     main()
 
     # Example usage:
-    # python main.py --dataset ATGO --output_dir ./atgo/baselines_unconstrained \
-    # --alignment_dir ./2024_01/diamond_swissprot_2024_01_alignment.tsv --k_values 1 3 5 10 15 20 \
-    # --db_versions --aspects BPO CCO MFO
+    # python main.py --dataset ATGO --output_suffix _exp \
+    # --alignment_dir ./data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv --k_values 1 3 5 10 15 20 \
+    # --aspects BPO CCO MFO --experimental_only

@@ -317,5 +317,4 @@ if __name__ == "__main__":
     ia_df[["term", "ic"]].to_csv(args.outfile, header=None, sep="\t", index=False)
 
 # Example usage:
-# python ia.py --annot ./data/SwissProt_H30_test_annotations.tsv --dataset SwissProt_H30 --ontology ./data/go.obo --prop --aspect BPO
-# python ia
+# python ia.py --annot ./data/swissprot/2024_01/swissprot_2024_01_BPO_exp_annotations.tsv --dataset H30 --ontology ./data/go.obo --aspect BPO
