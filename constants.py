@@ -5,7 +5,7 @@ SUBONTOLOGIES_LABELS = {
     "CCO": "Cellular Component",
 }
 SUBONTOLOGIES_COLORS = {"BPO": "forestgreen", "MFO": "tomato", "CCO": "steelblue"}
-DATASETS = ["H30", "ATGO", "D1"]
+DATASETS = ["H30", "ATGO", "D1", "CAFA3"]
 SWISSPROT_VERSIONS = [
     "1.0",
     "4.0",

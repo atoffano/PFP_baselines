@@ -71,6 +71,27 @@ def evaluate(logger, output_dir, dataset, aspect, k_values):
     else:
         logger.warning(f"NaiveBaseline predictions file {pred_file} does not exist.")
 
+    # Evaluate IDScore predictions
+    logger.info(f"Evaluating IDScore predictions")
+    # Convert predictions to pkl
+    pred_file = f"{output_dir}/predictions/IDScore/predictions.tsv"
+    pred_pkl = f"{output_dir}/predictions/IDScore/predictions.pkl"
+    if os.path.exists(pred_file):
+        pred_dict = convert_predictions(pred_file, aspect)
+        with open(pred_pkl, "wb") as f:
+            pickle.dump(pred_dict, f)
+
+        run_beprof_evaluation(
+            logger,
+            pred_pkl,
+            gt_pkl,
+            background_pkl,
+            go_obo_file,
+            f"{output_dir}/evaluation/IDScore",
+        )
+    else:
+        logger.warning(f"IDScore predictions file {pred_file} does not exist.")
+
     # Evaluate AlignmentScore predictions
     logger.info(f"Evaluating AlignmentScore predictions")
     # Convert predictions to pkl

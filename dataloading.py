@@ -1,8 +1,4 @@
 import pandas as pd
-import os
-import pickle
-
-from sqlalchemy import case
 
 
 def load_uniprot_mapping():
@@ -86,8 +82,8 @@ def load_pairwise_alignment(dataset, id_mapping=None):
     )
 
     ##### Load Uniprot ID mapping #####
-    if dataset not in ["ATGO"]:
-        # Diamond output uses EntryName (e.g. Q6GZX1) as protein IDs
+    if dataset in ["D1", "CAFA3"]:
+        # Diamond output uses EntryName (e.g. Q6GZX1) as protein IDs; Convert to EntryID
         pairwise_alignment["query_id"] = pairwise_alignment["query_id"].map(id_mapping)
         pairwise_alignment["subject_id"] = pairwise_alignment["subject_id"].map(
             id_mapping
@@ -119,7 +115,7 @@ def load_data(
     one_vs_all=False,
 ):
     logger.info(f"Loading SwissProt {db_version} annotations for training set")
-    if db_version is None:
+    if db_version == "":
         # Load constrained dataset
         train = pd.read_csv(
             f"./data/{dataset}/{dataset}_{aspect}_train_annotations.tsv",
@@ -143,30 +139,33 @@ def load_data(
         sep="\t",
     )
 
-    if one_vs_all:
-        # Merge train and test sets for one-vs-all approach
-        train = pd.concat([train, test]).drop_duplicates()
-    else:
+    if not one_vs_all:
         test = test[["EntryID"]]  # Drop terms; Makes sure no leakage occurs
         train = train[
             ~train["EntryID"].isin(test["EntryID"].unique())
         ]  # To *really* make sure
 
     if annotations_2024_01:
-        # Fix train proteins' annotations to 2024 SwissProt version
         logger.info("Fixing train proteins' annotations to 2024 SwissProt version...")
-        annotations_2024_01 = pd.read_csv(
-            f"./data/swissprot/2024_01/swissprot_2024_01_{aspect}_annotations.tsv",
-            sep="\t",
-        )
+        if experimental_only:
+            annotations_2024_01 = pd.read_csv(
+                f"./data/swissprot/2024_01/swissprot_2024_01_{aspect}_exp_annotations.tsv",
+                sep="\t",
+            )
+        else:
+            # Fix train proteins' annotations to 2024 SwissProt version
+            annotations_2024_01 = pd.read_csv(
+                f"./data/swissprot/2024_01/swissprot_2024_01_{aspect}_annotations.tsv",
+                sep="\t",
+            )
         # Get rows in annotations_2024_01 where EntryID is in train
         train = annotations_2024_01[
             annotations_2024_01["EntryID"].isin(train["EntryID"])
         ]
 
-    if dataset in ["D1"]:
+    if dataset in ["D1", "CAFA3"]:
+        logger.info("Mapping train SwissProt EntryID to EntryName...")
         train["EntryID"] = train["EntryID"].map(id_mapping).fillna(train["EntryID"])
-        print("Mapping train SwissProt EntryID to EntryName...")
 
     train["term"] = train["term"].str.split("; ")
     train = train.dropna().explode("term").drop_duplicates()

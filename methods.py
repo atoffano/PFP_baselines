@@ -59,6 +59,25 @@ def alignment_knn(E, k=5):
     return go_terms
 
 
+def best_percent_identity(E):
+    """
+    Get the best percent identity from the alignments. Transfer its annotations to current protein
+
+    Parameters:
+    E (dataframe): Dataframe of similar sequences according to Diamond blast results,
+                  with columns 'subject_id', 'perc_identity'.
+    """
+    if E.empty:
+        return {}
+
+    # Get the row with the maximum percent identity
+    best_row = E.loc[E["perc_identity"].idxmax()]
+    annotations = best_row["subject_annotations"]
+    go_terms = {term: 1.0 for term in annotations}  # Assign a score of 1.0 to each term
+
+    return go_terms
+
+
 def naive_baseline(input_dir, train, val):
     # Compute the frequency of each GO term across all proteins in the training set
     go_term_counts = train["term"].value_counts()
@@ -100,7 +119,7 @@ def transfer_annotations(
         "query_id"
     )  # Group by test protein for faster processing
 
-    ascore_pred = []
+    ascore_pred, idscore_pred = [], []
     blastknn_preds_dict = {k: [] for k in k_values}
 
     unaligned_proteins = 0
@@ -110,15 +129,31 @@ def transfer_annotations(
     ):
         try:
             group = grouped.get_group(protein)
-        except KeyError:
+        except KeyError:  # No alignments for this protein
             unaligned_proteins += 1
             unaligned_protein_ids.append(protein)
             continue
         if not one_vs_all:
-            assert (
-                not group["subject_id"].isin(test["EntryID"].unique()).any()
-            ), "Annotation leakage has been found beetween protein sets !"
+            try:
+                assert (
+                    not group["subject_id"].isin(test["EntryID"].unique()).any()
+                ), "Annotation leakage has been found beetween protein sets !"
+            except AssertionError as e:
+                logger.warning(f"Warning for protein {protein}: {e}")
+                logger.warning(
+                    f"Leakage in:\n{group[group['subject_id'].isin(test['EntryID'].unique())]}"
+                )
+                exit(1)
 
+        # CAFA3 baseline: Best percent identity
+        idscore = best_percent_identity(group)
+        if idscore:
+            idscore_pred.extend(
+                {"target_ID": protein, "term_ID": term_id, "score": score}
+                for term_id, score in idscore.items()
+            )
+
+        # Alignment Score, DiamondKNN (based off bitscore)
         ascore_preds = alignment_score(group)  # Compute from all alignments
         for k in k_values:  # Compute from k closest alignments
             knn_preds = alignment_knn(group, k=k)
@@ -139,4 +174,4 @@ def transfer_annotations(
     logger.info(
         f"Number of unaligned proteins: {unaligned_proteins} out of {len(test['EntryID'].unique())} ({unaligned_proteins / test['EntryID'].nunique() * 100} %); No annotations have been transfered for alignment-based methods."
     )
-    return unaligned_protein_ids, ascore_pred, blastknn_preds_dict
+    return unaligned_protein_ids, ascore_pred, blastknn_preds_dict, idscore_pred

@@ -188,7 +188,7 @@ def main(experimental_only=True):
     for db_version in tqdm.tqdm(DB_VERSIONS, desc="Parsing SwissProt releases"):
         year_folder = os.path.join(BASE_PATH, "swissprot", db_version)
 
-        entries = parse_uniprot_dat(dat_file)
+        entries = parse_uniprot_dat(file)
         output_file = os.path.join(
             year_folder, f"swissprot_{db_version}_annotations.tsv"
         )

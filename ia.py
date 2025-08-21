@@ -237,8 +237,8 @@ if __name__ == "__main__":
     annotation_df["term"] = annotation_df["term"].apply(lambda x: x.split("; "))
     annotation_df = annotation_df[annotation_df["term"].notna()]
     annotation_df = annotation_df[["EntryID", "term"]].explode("term")
-    # annotation_df["term"] = annotation_df["term"].map(lambda x: old_to_new.get(x, x))
-    # annotation_df = annotation_df[~annotation_df["term"].isin(obsolete)]
+    annotation_df["term"] = annotation_df["term"].map(lambda x: old_to_new.get(x, x))
+    annotation_df = annotation_df[~annotation_df["term"].isin(obsolete)]
     # Remove
     annotation_df["aspect"] = annotation_df["term"].map(aspect)
     annotation_df = annotation_df.dropna(subset=["aspect"])
