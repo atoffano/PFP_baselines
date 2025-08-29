@@ -72,7 +72,7 @@ def main():
         "--k_values",
         type=int,
         nargs="+",
-        default=[1, 3, 5, 10, 15, 20],
+        default=[],
         help="List of k closest sequences to transfer annotations from.",
     )
     parser.add_argument(
@@ -102,7 +102,7 @@ def main():
     parser.add_argument(
         "--output_suffix",
         type=str,
-        default="stringdb",
+        default="",
         help="Appended suffix to the output directory.",
     )
     parser.add_argument(
@@ -126,6 +126,8 @@ def main():
         for aspect in args.aspects:
 
             output_dir = f"./results/{args.dataset}/baselines_{args.dataset}_{db_version}_{aspect}{args.output_suffix}"
+            if args.experimental_only:
+                output_dir += "_exp"
             if args.annotations_2024_01:
                 output_dir += "_2024_annotations"
             if args.one_vs_all:
@@ -154,6 +156,9 @@ def main():
                 f"Loaded {train['EntryID'].nunique()} training proteins and {test['EntryID'].nunique()} test proteins"
             )
             logger.info(f"One-vs-All approach: {args.one_vs_all}.")
+            logger.info(f"Experimental annotations only: {args.experimental_only}")
+            logger.info(f"SwissProt 2024 annotations: {args.annotations_2024_01}")
+            logger.info(f"Output directory: {output_dir}")
             logger.info(f"Train set:\n{train}")
             logger.info(f"Test set:\n{test}")
 
@@ -169,15 +174,16 @@ def main():
                 args.dataset,
                 id_mapping=id_mapping,
             )
+
+            pairwise_alignment = pairwise_alignment[
+                pairwise_alignment["query_id"].isin(test["EntryID"].unique())
+                & pairwise_alignment["subject_id"].isin(train["EntryID"].unique())
+            ]
+
             if not args.one_vs_all:
+                logger.info(f"Removing test proteins from alignment subjects...")
                 pairwise_alignment = pairwise_alignment[
-                    pairwise_alignment["query_id"].isin(test["EntryID"].unique())
-                    & pairwise_alignment["subject_id"].isin(train["EntryID"].unique())
-                ]
-            else:
-                # For one-vs-all, test set proteins are allowed to transfer their annotations (just not to self)
-                pairwise_alignment = pairwise_alignment[
-                    pairwise_alignment["query_id"].isin(train["EntryID"].unique())
+                    ~pairwise_alignment["subject_id"].isin(test["EntryID"].unique())
                 ]
 
             logger.info(f"Loaded {len(pairwise_alignment)} pairwise alignments")
@@ -185,7 +191,8 @@ def main():
             logger.info("Running alignment-based methods...")
             os.makedirs(f"{output_dir}/predictions/AlignmentScore", exist_ok=True)
             os.makedirs(f"{output_dir}/predictions/BlastKNN", exist_ok=True)
-            unaligned_protein_ids, ascore_pred, blastknn_preds_dict = (
+            os.makedirs(f"{output_dir}/predictions/IDScore", exist_ok=True)
+            unaligned_protein_ids, ascore_pred, blastknn_preds_dict, idscore_pred = (
                 methods.transfer_annotations(
                     logger,
                     pairwise_alignment,
@@ -206,21 +213,39 @@ def main():
                 for pid in unaligned_protein_ids:
                     f.write(f"{pid}\n")
 
-            pd.DataFrame(ascore_pred).to_csv(
-                f"{output_dir}/predictions/AlignmentScore/predictions.tsv",
-                sep="\t",
-                index=False,
-            )
-            logger.info(f"Saved {len(ascore_pred)} AlignmentScore predictions")
-
-            for k in args.k_values:
-                pred_count = len(blastknn_preds_dict[k])
-                pd.DataFrame(blastknn_preds_dict[k]).to_csv(
-                    f"{output_dir}/predictions/BlastKNN/k{k}_predictions.tsv",
+            if idscore_pred:
+                pd.DataFrame(idscore_pred).to_csv(
+                    f"{output_dir}/predictions/IDScore/predictions.tsv",
                     sep="\t",
                     index=False,
                 )
-                logger.info(f"Saved {pred_count} BlastKNN predictions for k={k}")
+                logger.info(
+                    f"Saved {len(idscore_pred)} Best identity % score predictions"
+                )
+            else:
+                logger.warning("No IDScore predictions were made.")
+
+            if ascore_pred:
+                pd.DataFrame(ascore_pred).to_csv(
+                    f"{output_dir}/predictions/AlignmentScore/predictions.tsv",
+                    sep="\t",
+                    index=False,
+                )
+                logger.info(f"Saved {len(ascore_pred)} AlignmentScore predictions")
+            else:
+                logger.warning("No AlignmentScore predictions were made.")
+
+            for k in args.k_values:
+                pred_count = len(blastknn_preds_dict[k])
+                if pred_count != 0:
+                    pd.DataFrame(blastknn_preds_dict[k]).to_csv(
+                        f"{output_dir}/predictions/BlastKNN/k{k}_predictions.tsv",
+                        sep="\t",
+                        index=False,
+                    )
+                    logger.info(f"Saved {pred_count} BlastKNN predictions for k={k}")
+                else:
+                    logger.warning(f"No BlastKNN predictions for k={k}")
 
             logger.info(f"All predictions saved to {output_dir}/predictions")
             logger.info(f"Completed processing for {aspect}")
@@ -238,7 +263,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-    # Example usage:
-    # python main.py --dataset ATGO --output_suffix _exp \
+    # Usage:
+    # python main.py --dataset ATGO \
     # --alignment_dir ./data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv --k_values 1 3 5 10 15 20 \
     # --aspects BPO CCO MFO --experimental_only

@@ -61,7 +61,7 @@ def alignment_knn(E, k=5):
 
 def best_percent_identity(E):
     """
-    Get the best percent identity from the alignments. Transfer its annotations to current protein
+    Get the best percent identity from the alignments. Transfer its annotations to current protein.
 
     Parameters:
     E (dataframe): Dataframe of similar sequences according to Diamond blast results,

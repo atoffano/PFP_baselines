@@ -1,4 +1,5 @@
 import pandas as pd
+from constants import *
 
 
 def load_uniprot_mapping():
@@ -82,8 +83,8 @@ def load_pairwise_alignment(dataset, id_mapping=None):
     )
 
     ##### Load Uniprot ID mapping #####
-    if dataset in ["D1", "CAFA3"]:
-        # Diamond output uses EntryName (e.g. Q6GZX1) as protein IDs; Convert to EntryID
+    if dataset in USES_ENTRYID:
+        # Diamond output uses EntryName (e.g. Q6GZX1) as protein IDs
         pairwise_alignment["query_id"] = pairwise_alignment["query_id"].map(id_mapping)
         pairwise_alignment["subject_id"] = pairwise_alignment["subject_id"].map(
             id_mapping
@@ -163,11 +164,12 @@ def load_data(
             annotations_2024_01["EntryID"].isin(train["EntryID"])
         ]
 
-    if dataset in ["D1", "CAFA3"]:
+    if dataset in USES_ENTRYID:
         logger.info("Mapping train SwissProt EntryID to EntryName...")
         train["EntryID"] = train["EntryID"].map(id_mapping).fillna(train["EntryID"])
 
-    train["term"] = train["term"].str.split("; ")
-    train = train.dropna().explode("term").drop_duplicates()
+    train["term"] = (
+        train["term"].str.split("; ").dropna().explode("term").drop_duplicates()
+    )
 
     return train, test
