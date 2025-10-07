@@ -1,4 +1,4 @@
-# PFP_baselines
+# Reassessing Protein Function Prediction Performance of Alignment-based Approaches
 
 Protein Function Prediction (PFP) is a critical task in bioinformatics, where the goal is to predict the function of proteins based on their sequences and annotations.
 
@@ -103,6 +103,7 @@ Additional arguments can be passed to the script, such as `--experimental_only` 
 
 #### Experimental Setups
 ![alt text](setups.png)
+
 To execute annotation transfer from the train set to the test set (i.e. the usual setup in the litterature, refered to as 'Benchmark'), set `--db_version` to an empty string `''`.  
 `--one_vs_all` will run the baselines in a 'One-vs-All' setup, where each test protein can receive annotations from the rest of the proteins in the dataset (excluding themselves), regardless of their train/test split.  
 `--annotations_2024_01` will freeze annotations to the 2024_01 SwissProt release's, using only proteins present in the specified `--db_version`. This is referred to as the 'Up-to-date' setup.
