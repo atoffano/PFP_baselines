@@ -134,5 +134,6 @@ See the  [BeProf evaluation script github](https://github.com/CSUBioGroup/BeProf
 ---
 
 ### Notes
-Adjust file paths and parameters as needed for your specific setup.  
+Adjust file paths and parameters as needed for your specific setup.
+Plots can be reproduced using the Jupyter notebooks present in the `notebooks` folder.
 Additional performance could likely be further squeezed by tuning the scoring functions and parameters of the baseline according to the following paper: [A large-scale assessment of sequence database search tools for homology-based protein function prediction](https://doi.org/10.1093/bib/bbae349).
