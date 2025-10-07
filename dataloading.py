@@ -168,8 +168,7 @@ def load_data(
         logger.info("Mapping train SwissProt EntryID to EntryName...")
         train["EntryID"] = train["EntryID"].map(id_mapping).fillna(train["EntryID"])
 
-    train["term"] = (
-        train["term"].str.split("; ").dropna().explode("term").drop_duplicates()
-    )
+    train["term"] = train["term"].str.split("; ").dropna()
+    train = train.explode("term").drop_duplicates()
 
     return train, test

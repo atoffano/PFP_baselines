@@ -134,7 +134,9 @@ def filter_release(experimental_only=False):
     with open(ref_file) as f:
         ref_ids = set(line.split("\t")[1] for i, line in enumerate(f) if i > 0)
 
-    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Filtering SwissProt releases"):
+    for db_version in tqdm.tqdm(
+        SWISSPROT_VERSIONS, desc="Filtering SwissProt releases"
+    ):
         if experimental_only:
             tsv_file = os.path.join(
                 BASE_PATH,
@@ -169,7 +171,9 @@ def filter_release(experimental_only=False):
 def main(experimental_only=True):
     print("Experimental only mode enabled.")
     # # Download SwissProt releases
-    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Downloading SwissProt releases"):
+    for db_version in tqdm.tqdm(
+        SWISSPROT_VERSIONS, desc="Downloading SwissProt releases"
+    ):
         if "_" in db_version:
             # Download recent SwissProt releases - from 2024 to 2010
             rel = f"release-{db_version}"
@@ -185,7 +189,7 @@ def main(experimental_only=True):
             print(f"Downloaded and extracted SwissProt {db_version} annotations.")
 
     # Parse all SwissProt releases and save annotations to TSV files
-    for db_version in tqdm.tqdm(DB_VERSIONS, desc="Parsing SwissProt releases"):
+    for db_version in tqdm.tqdm(SWISSPROT_VERSIONS, desc="Parsing SwissProt releases"):
         year_folder = os.path.join(BASE_PATH, "swissprot", db_version)
 
         entries = parse_uniprot_dat(file)

@@ -11,14 +11,14 @@ It provides a pipeline to run these methods in a more realistic setting, showing
 
 - [Overview](#overview)
 - [Requirements](#requirements)
-- [Step-by-Step Instructions](#step-by-step-instructions)
-  - [0. Diamond Installation](#0-diamond-installation)
+- [Reproduction Steps](#reproduction-steps)
   - [1. Data Downloading & Preparation](#1-data-downloading--preparation)
   - [2. Annotation Propagation](#2-annotation-propagation)
   - [3. Alignment](#3-alignment)
   - [4. Preparing the evaluation](#4-preparing-the-evaluation)
   - [5. Running Baselines](#5-running-baselines)
   - [6. Evaluation](#6-evaluation)
+- [Notes](#notes)
 ---
 
 ## Overview
@@ -27,19 +27,20 @@ This repository provides a pipeline for running baseline alignment-based methods
 
 ## Requirements
 
-- Python 3.x
-- Required Python packages (install with `pip install -r requirements.txt`)
+The following Python packages are required to run the scripts in this repository:
+```sh
+pip install obonet networkx tqdm pandas scipy biopython matplotlib seaborn
+```
 
-## Step-by-Step Instructions
-
-### 0. Diamond Installation
-Make sure you have the Diamond software installed.
+Additionally, the Diamond software is required for sequence alignment.
 You can download it from the [Diamond GitHub repository](http://github.com/bbuchfink/diamond) or simply execute the following command on Linux-based systems:
 
 ```sh
 wget http://github.com/bbuchfink/diamond/releases/download/v2.1.11/diamond-linux64.tar.gz
 tar xzf diamond-linux64.tar.gz
 ```
+
+## Reproduction Steps
 
 ### 1. Data Downloading & Preparation
 
@@ -53,7 +54,7 @@ python download_swissprot.py
 Propagate GO annotations using the ontology structure:
 
 ```sh
-python propagate_annotations.py
+python propagate_swissprot_terms.py
 ```
 This step uses the GO ontology to propagate annotations from parent to child terms, ensuring that all relevant annotations are included.
 Note that propagating terms can take a while.
@@ -69,10 +70,10 @@ echo "Running Diamond blast on protein sequences against themselves..."
 diamond blastp --very-sensitive --db data/swissprot/2024_01/swissprot_2024_01_proteins_set.dmnd --query data/swissprot/2024_01/swissprot_2024_01.fasta --out data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv -e 0.001
 ```
 This step creates a Diamond database from the SwissProt protein sequences and performs a sequence alignment to find similar proteins. The output will be stored in `data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv`.
-Note that as the 2024 release of SwissProt contains >500,000 proteins, the all-vs-all alignment step can be long (about 1 hour).
+Note that as the 2024 release of SwissProt contains over 570,000 proteins, the all-vs-all alignment step can be long (about 1 hour).
 
 ### 4. Preparing the evaluation
-To evaluate the performance of a method, IC-weighted scores are used. These scores are computed based on the Information Content (IC) of the GO terms, which is derived from the background distribution of GO terms in the dataset.
+To evaluate the performance of a method, $IC$-weighted scores are used. These scores are computed based on the Information Content ($IC$) of the GO terms, which is derived from the background distribution of GO terms in the dataset.
 Background files needs to be generated prior to running the baselines.
 Example for the ATGO dataset:
 ```sh
@@ -126,7 +127,6 @@ python evaluation.py \
 ```
 
 See the  [BeProf evaluation script github](https://github.com/CSUBioGroup/BeProf/tree/main) for details on the parameters, options and file formats.
-
 
 ---
 
