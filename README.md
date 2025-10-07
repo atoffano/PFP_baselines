@@ -96,14 +96,17 @@ python main.py \
 To greatly speed up the process, you can skip the Naive baseline by uncommenting the corresponding line in the `main.py` script.  
 
 `--db_version` can be set to the SwissProt version you want to use, e.g. `2024_01`, or a collection of versions, e.g. `2024_01 2021_01`. If not set, the script will use all available versions.  
-To apply annotation transfer from the train set to the test set (i.e. the usual setup in the litterature), set `--db_version` to an empty string `''`.  
 `--alignment_dir` specifies the path to the Diamond alignment file generated in step 3.  
 `--k_values` specifies the k values to use for the KNN baseline. You can adjust these values based on your needs.  
 `--aspects` specifies the GO subontologies to consider (BPO, CCO, MFO). Defaults to all three aspects.  
-
 Additional arguments can be passed to the script, such as `--experimental_only` to run only using experimental annotations. Leaving this flag unset will include all manually curated GO annotations present in SwissProt.  
-`--one_vs_all` will run the baselines in a one-vs-all setup, where each test protein can receive annotations from the rest of the proteins in the dataset (excluding themselves), regardless of their train/test split.  
-`--annotations_2024_01` will transfer annotations from the 2024_01 SwissProt release, using only proteins present in the specified `--db_version`.  
+
+#### Experimental Setups
+![alt text](setups.png)
+To execute annotation transfer from the train set to the test set (i.e. the usual setup in the litterature, refered to as 'Benchmark'), set `--db_version` to an empty string `''`.  
+`--one_vs_all` will run the baselines in a 'One-vs-All' setup, where each test protein can receive annotations from the rest of the proteins in the dataset (excluding themselves), regardless of their train/test split.  
+`--annotations_2024_01` will freeze annotations to the 2024_01 SwissProt release's, using only proteins present in the specified `--db_version`. This is referred to as the 'Up-to-date' setup.
+Not including any of these flags will run the baselines in the 'SwissProt' setup, where annotations are transferred from the specified SwissProt version(s) to the test proteins.
 
 Example usage on the ATGO dataset, applied to all SwissProt version, using experimental annotations and a one-vs-all setup:
 
