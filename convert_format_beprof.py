@@ -3,7 +3,6 @@ import pandas as pd
 import pickle
 import argparse
 import tqdm
-import time
 
 
 def convert_predictions(pred_file, subontology):
@@ -38,7 +37,6 @@ def main():
     parser.add_argument("--pred_out", required=True, help="Output pickle file path")
     args = parser.parse_args()
 
-    # Get subontology from file name
     if "CCO" in args.pred_file:
         subontology = "cc"
     elif "BPO" in args.pred_file:
@@ -49,7 +47,6 @@ def main():
         subontology = "all"
     pred_dict = convert_predictions(args.pred_file, subontology)
 
-    # Save dictionaries as pickle files
     with open(args.pred_out, "wb") as f:
         pickle.dump(pred_dict, f)
 

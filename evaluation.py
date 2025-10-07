@@ -52,7 +52,6 @@ def evaluate(logger, output_dir, dataset, aspect, k_values):
 
     # Evaluate NaiveBaseline predictions
     logger.info(f"Evaluating NaiveBaseline predictions")
-    # Convert predictions to pkl
     pred_file = f"{output_dir}/predictions/NaiveBaseline/predictions.tsv"
     pred_pkl = f"{output_dir}/predictions/NaiveBaseline/predictions.pkl"
     if os.path.exists(pred_file):
@@ -94,7 +93,6 @@ def evaluate(logger, output_dir, dataset, aspect, k_values):
 
     # Evaluate AlignmentScore predictions
     logger.info(f"Evaluating AlignmentScore predictions")
-    # Convert predictions to pkl
     pred_file = f"{output_dir}/predictions/AlignmentScore/predictions.tsv"
     pred_pkl = f"{output_dir}/predictions/AlignmentScore/predictions.pkl"
     if os.path.exists(pred_file):
@@ -112,7 +110,7 @@ def evaluate(logger, output_dir, dataset, aspect, k_values):
     else:
         logger.warning(f"AlignmentScore predictions file {pred_file} does not exist.")
 
-    # # Evaluate BlastKNN predictions for each k value
+    # Evaluate BlastKNN predictions for each k value
     for k in k_values:
         logger.info(f"Evaluating BlastKNN predictions for k={k}")
         pred_file = f"{output_dir}/predictions/BlastKNN/k{k}_predictions.tsv"
@@ -142,12 +140,10 @@ def run_beprof_evaluation(
     """
     Run beprof_eval.py as a subprocess.
     """
-    # Create evaluation output directory
     os.makedirs(eval_output_dir, exist_ok=True)
 
-    # Prepare command arguments
     cmd = [
-        sys.executable,  # Use the same Python interpreter
+        sys.executable,
         "beprof_eval.py",
         "--predict",
         pred_pkl,
@@ -166,7 +162,6 @@ def run_beprof_evaluation(
     logger.info(f"Running BeProf evaluation: {' '.join(cmd)}")
 
     try:
-        # Run the subprocess and wait for completion
         result = subprocess.run(
             cmd,
             check=True,
@@ -198,13 +193,11 @@ def gt_convert(gt_tsv):
     """
     Convert GT to pkl.
     """
-    # Extract the ontology type (BPO, CCO, MFO) from the filename
     base_name = os.path.basename(gt_tsv)
     ontology_type = base_name.split("_")[1]  # Extract BPO, CCO, or MFO
     ontology_mapping = {"BPO": "all_bp", "CCO": "all_cc", "MFO": "all_mf"}
     ontology_key = ontology_mapping[ontology_type]
 
-    # Output filename: same as input but with .pkl extension
     gt_pkl = os.path.splitext(gt_tsv)[0] + ".pkl"
 
     print(f"Processing {base_name}...")
@@ -214,7 +207,6 @@ def gt_convert(gt_tsv):
     df["term"] = df["term"].str.split("; ")
     df = df.explode("term")
 
-    # Build the nested dictionary for pickling
     protein_go_terms = defaultdict(
         lambda: {"all_bp": set(), "all_cc": set(), "all_mf": set()}
     )
@@ -223,19 +215,12 @@ def gt_convert(gt_tsv):
         term_id = row["term"]
         protein_go_terms[protein_id][ontology_key].add(term_id)
 
-    # Convert defaultdict to regular dict for pickling
     protein_go_terms_dict = dict(protein_go_terms)
 
     # Save to pickle file
     with open(gt_pkl, "wb") as f:
         pickle.dump(protein_go_terms_dict, f)
     print(f"Saved pickle file: {gt_pkl}")
-
-    # # Print sample data for verification
-    # if protein_go_terms_dict:
-    #     sample_protein = next(iter(protein_go_terms_dict))
-    #     print(f"Sample data for {sample_protein} in {ontology_type}:")
-    #     print(protein_go_terms_dict[sample_protein])
 
 
 def convert_predictions(pred_file, aspect):

@@ -17,51 +17,8 @@ def load_uniprot_mapping():
 
 def load_pairwise_alignment(dataset, id_mapping=None):
     """
-    Load pairwise alignment data and map Query_id and Subject_id to EntryID using id_mapping
+    Load pairwise alignment data (SwissProt 2024_01) and map Query_id and Subject_id to EntryID using id_mapping
     """
-    # match method:
-    #     case "stringdb":
-    #         pairwise_alignment = pd.read_csv(
-    #             "./data/stringdb/swissprot_stringdb.tsv",
-    #             sep="\t",
-    #             header=True,
-    #             names=[
-    #                 "protein1",
-    #                 "protein2",
-    #                 "neighborhood",
-    #                 "fusion",
-    #                 "cooccurence",
-    #                 "coexpression",
-    #                 "experimental",
-    #                 "database",
-    #                 "textmining",
-    #                 "combined_score",
-    #             ],
-    #         )
-    #         # Keep only relevant columns
-    #         pairwise_alignment = pairwise_alignment[
-    #             ["protein1", "protein2", "combined_score"]
-    #         ].rename(
-    #             columns={
-    #                 "protein1": "query_id",
-    #                 "protein2": "subject_id",
-    #                 "combined_score": "score",
-    #             }
-    #         )
-
-    #         if dataset in ["ATGO"]:
-    #             # Apply reverse id_mapping, as ATGO uses Entry Name as protein IDs
-    #             # StringDB uses EntryID (004R_FRG3G) as protein IDs
-    #             reversed_id_mapping = {v: k for k, v in id_mapping.items()}
-    #             pairwise_alignment["query_id"] = pairwise_alignment["query_id"].apply(
-    #                 lambda x: reversed_id_mapping.get(x, x)
-    #             )
-    #             pairwise_alignment["subject_id"] = pairwise_alignment[
-    #                 "subject_id"
-    #             ].apply(lambda x: reversed_id_mapping.get(x, x))
-
-    #     case "diamond":
-    # Load pairwise alignment from Diamond output ran on SwissProt 2024_01
     pairwise_alignment = pd.read_csv(
         "./data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv",
         sep="\t",
@@ -82,7 +39,7 @@ def load_pairwise_alignment(dataset, id_mapping=None):
         ],
     )
 
-    ##### Load Uniprot ID mapping #####
+    # Load Uniprot ID mapping
     if dataset in USES_ENTRYID:
         # Diamond output uses EntryName (e.g. Q6GZX1) as protein IDs
         pairwise_alignment["query_id"] = pairwise_alignment["query_id"].map(id_mapping)

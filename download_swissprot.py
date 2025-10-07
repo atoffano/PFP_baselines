@@ -182,7 +182,7 @@ def main(experimental_only=True):
             dl_swissprot(file, url, db_version)
             print(f"Downloaded and extracted SwissProt {db_version} annotations.")
         else:
-            # Download older SwissProt releases - from 2009 to 2003
+            # Download older SwissProt releases - from 2009 to 2003 (different scheme)
             file = f"uniprot_sprot-only{db_version}.tar.gz"
             url = f"https://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release{rel}/knowledgebase/{file}"
             dl_swissprot(file, url, db_version)

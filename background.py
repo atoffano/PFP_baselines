@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import pandas as pd
 import argparse
 import pickle
@@ -6,7 +5,6 @@ import os
 
 
 def parse_terms(terms_str):
-    # Convert the string representation of a list to an actual list using ast.literal_eval
     try:
         return set(terms_str.split("; "))
     except Exception as e:
@@ -82,7 +80,6 @@ def main():
     output_dir = args.output.rsplit("/", 1)[0]
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
-    # Save the merged dictionary as pandas df
     with open(args.output, "wb") as f:
         pickle.dump(result, f)
     print(f"Merged background file saved to: {args.output}")

@@ -502,7 +502,6 @@ def compute_performance(test_df, go, ont, output_path):
     dpprecisions = dpprecisions[sorted_index]
     result_dpaupr = np.trapz(dpprecisions, dprecalls)
 
-    # Save recalls, precisions, icprecisions, icrecalls, dpprecisions, dprecalls, result_aupr, result_icaupr, result_dpaupr, ru_values, mi_values to dict and pickle
     save_dict = {
         "ontology": ont,
         "recalls": recalls,

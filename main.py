@@ -8,30 +8,6 @@ from dataloading import *
 import methods
 import evaluation
 
-DB_VERSIONS = [
-    "2024_01",
-    "2023_01",
-    "2022_01",
-    "2021_01",
-    "2020_01",
-    "2019_01",
-    "2018_01",
-    "2017_01",
-    "2016_01",
-    "2015_01",
-    "2014_01",
-    "2013_01",
-    "2012_01",
-    "2011_01",
-    "2010_01",
-    "15.0",
-    "13.0",
-    "10.0",
-    "7.0",
-    "4.0",
-    "1.0",
-]
-
 
 def setup_logging(output_dir, aspect):
     """Setup logging for each aspect with separate log files."""
@@ -79,7 +55,7 @@ def main():
         "--db_versions",
         type=str,
         nargs="+",
-        default=DB_VERSIONS,
+        default=SWISSPROT_VERSIONS,
         help="SwissProt DB versions to process.",
     )
     parser.add_argument(
@@ -162,7 +138,7 @@ def main():
             logger.info(f"Train set:\n{train}")
             logger.info(f"Test set:\n{test}")
 
-            # Comment to skip Naive Baseline
+            # Comment out to skip Naive Baseline
             # logger.info("Running Naive Baseline...")
             # os.makedirs(f"{output_dir}/predictions/NaiveBaseline", exist_ok=True)
             # methods.naive_baseline(output_dir, train, test)
@@ -263,7 +239,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-    # Usage:
-    # python main.py --dataset ATGO \
-    # --alignment_dir ./data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv --k_values 1 3 5 10 15 20 \
-    # --aspects BPO CCO MFO --experimental_only
+# Usage:
+# python main.py --dataset ATGO \
+# --alignment_dir ./data/swissprot/2024_01/diamond_swissprot_2024_01_alignment.tsv --k_values 1 3 5 10 15 20 \
+# --aspects BPO CCO MFO --experimental_only
